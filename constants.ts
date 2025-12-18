@@ -141,7 +141,18 @@ export const PROPHET_STORIES = [
     youtubeId: "VIDEO_ID_5", // Ganti dengan YouTube Video ID
     description: "Kisah Nabi Yusuf AS yang sangat tampan dan penuh ujian dari saudara-saudaranya.",
     duration: "20:15",
-    quizQuestions: [],
+    quizQuestions: [
+      {
+        question: "Saudara-saudara Nabi Yusuf melemparnya ke mana?",
+        options: ["Sungai", "Sumur", "Laut", "Gunung"],
+        correctAnswer: 1,
+      },
+      {
+        question: "Nabi Yusuf AS terkenal karena apa?",
+        options: ["Kekuatannya", "Ketampanannya", "Suaranya", "Tingginya"],
+        correctAnswer: 1,
+      },
+    ],
   },
   {
     id: 6,
@@ -150,7 +161,18 @@ export const PROPHET_STORIES = [
     youtubeId: "VIDEO_ID_6", // Ganti dengan YouTube Video ID
     description: "Kisah Nabi Isa AS yang lahir tanpa ayah dan bisa berbicara sejak bayi.",
     duration: "14:30",
-    quizQuestions: [],
+    quizQuestions: [
+      {
+        question: "Siapa ibu Nabi Isa AS?",
+        options: ["Hawa", "Maryam", "Khadijah", "Aisyah"],
+        correctAnswer: 1,
+      },
+      {
+        question: "Apa keistimewaan Nabi Isa AS saat bayi?",
+        options: ["Bisa berjalan", "Bisa berbicara", "Bisa terbang", "Bisa menulis"],
+        correctAnswer: 1,
+      },
+    ],
   },
   {
     id: 7,
@@ -159,7 +181,23 @@ export const PROPHET_STORIES = [
     youtubeId: "VIDEO_ID_7", // Ganti dengan YouTube Video ID
     description: "Kisah Nabi Muhammad SAW, nabi terakhir dan penutup para nabi.",
     duration: "25:00",
-    quizQuestions: [],
+    quizQuestions: [
+      {
+        question: "Di kota mana Nabi Muhammad SAW lahir?",
+        options: ["Madinah", "Makkah", "Thaif", "Yaman"],
+        correctAnswer: 1,
+      },
+      {
+        question: "Siapa yang merawat Nabi Muhammad SAW setelah ibunya wafat?",
+        options: ["Ayahnya", "Kakeknya Abdul Muthalib", "Pamannya Abu Bakar", "Saudaranya"],
+        correctAnswer: 1,
+      },
+      {
+        question: "Nabi Muhammad SAW adalah nabi yang keberapa?",
+        options: ["Ke-24", "Ke-25", "Pertama", "Ke-10"],
+        correctAnswer: 1,
+      },
+    ],
   },
 ];
 

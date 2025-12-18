@@ -52,9 +52,20 @@ export const Sidebar = ({ className }: Props) => {
             iconSrc="/leaderboard.svg"
           />
           <SidebarItem
+            label="Quest"
+            href="/quests"
+            iconSrc="/quests.svg"
+          />
+          <SidebarItem
             label="Toko"
             href="/shop"
             iconSrc="/shop.svg"
+          />
+          <div className="flex-1" />
+          <SidebarItem
+            label="Profil"
+            href="/account"
+            iconSrc="/profile.svg"
           />
         </div>
       </div>
@@ -70,17 +81,21 @@ export const Sidebar = ({ className }: Props) => {
             <Image src="/hijaiyah.svg" alt="Hijaiyah" width={24} height={24} />
             <span className="mt-1">Hijaiyah</span>
           </Link>
-          <Link href="/stories" aria-label="Kisah Nabi" className="flex flex-col items-center text-slate-700 text-xs">
-            <Image src="/stories.svg" alt="Kisah Nabi" width={24} height={24} />
-            <span className="mt-1">Nabi</span>
+          <Link href="/quests" aria-label="Quest" className="flex flex-col items-center text-slate-700 text-xs">
+            <span className="text-xl">🎯</span>
+            <span className="mt-1">Quest</span>
           </Link>
-          <Link href="/hadith" aria-label="Hadist" className="flex flex-col items-center text-slate-700 text-xs">
-            <Image src="/hadith.svg" alt="Hadist" width={24} height={24} />
-            <span className="mt-1">Hadist</span>
+          <Link href="/leaderboard" aria-label="Ranking" className="flex flex-col items-center text-slate-700 text-xs">
+            <Image src="/leaderboard.svg" alt="Ranking" width={24} height={24} />
+            <span className="mt-1">Ranking</span>
           </Link>
           <Link href="/shop" aria-label="Toko" className="flex flex-col items-center text-slate-700 text-xs">
             <Image src="/shop.svg" alt="Toko" width={24} height={24} />
             <span className="mt-1">Toko</span>
+          </Link>
+          <Link href="/account" aria-label="Profil" className="flex flex-col items-center text-slate-700 text-xs">
+            <span className="text-xl">👤</span>
+            <span className="mt-1">Profil</span>
           </Link>
         </div>
       </nav>
