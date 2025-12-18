@@ -4,6 +4,7 @@ import type {
   HijaiyahProgress,
   StoryProgress,
   HadithProgress,
+  IqroProgress,
 } from "@/types/database";
 
 interface LessonProgressStore {
@@ -15,6 +16,9 @@ interface LessonProgressStore {
   
   // Hadith Progress
   hadithProgress: Record<string, HadithProgress>;
+
+  // Iqro Progress
+  iqroProgress: Record<number, IqroProgress>;
 
   // Actions - Hijaiyah
   completeHijaiyahLesson: (
@@ -53,11 +57,24 @@ interface LessonProgressStore {
   
   isHadithCompleted: (hadithId: string) => boolean;
 
+  // Actions - Iqro
+  updateIqroProgress: (
+    iqroId: number,
+    currentPage: number,
+    totalPages: number,
+    completed: boolean
+  ) => void;
+  
+  getIqroProgress: (iqroId: number) => IqroProgress | undefined;
+  
+  isIqroCompleted: (iqroId: number) => boolean;
+
   // Stats
   getTotalCompleted: () => {
     hijaiyah: number;
     stories: number;
     hadith: number;
+    iqro: number;
     total: number;
   };
 }
@@ -69,6 +86,7 @@ export const useLessonProgress = create<LessonProgressStore>()(
       hijaiyahProgress: {},
       storyProgress: {},
       hadithProgress: {},
+      iqroProgress: {},
 
       // Hijaiyah Actions
       completeHijaiyahLesson: (
@@ -194,6 +212,38 @@ export const useLessonProgress = create<LessonProgressStore>()(
         return progress?.completed || false;
       },
 
+      // Iqro Actions
+      updateIqroProgress: (
+        iqroId: number,
+        currentPage: number,
+        totalPages: number,
+        completed: boolean
+      ) => {
+        set((state) => ({
+          iqroProgress: {
+            ...state.iqroProgress,
+            [iqroId]: {
+              id: iqroId,
+              userId: "demo-user",
+              iqroId,
+              currentPage,
+              totalPages,
+              completed: completed || state.iqroProgress[iqroId]?.completed || false,
+              lastReadDate: new Date().toISOString(),
+            },
+          },
+        }));
+      },
+
+      getIqroProgress: (iqroId: number) => {
+        return get().iqroProgress[iqroId];
+      },
+
+      isIqroCompleted: (iqroId: number) => {
+        const progress = get().iqroProgress[iqroId];
+        return progress?.completed || false;
+      },
+
       // Stats
       getTotalCompleted: () => {
         const state = get();
@@ -210,11 +260,16 @@ export const useLessonProgress = create<LessonProgressStore>()(
           (p) => p.completed
         ).length;
 
+        const iqro = Object.values(state.iqroProgress).filter(
+          (p) => p.completed
+        ).length;
+
         return {
           hijaiyah,
           stories,
           hadith,
-          total: hijaiyah + stories + hadith,
+          iqro,
+          total: hijaiyah + stories + hadith + iqro,
         };
       },
     }),

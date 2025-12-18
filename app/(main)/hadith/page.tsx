@@ -26,30 +26,30 @@ const HadithPage = () => {
   const progressPercentage = (completedCount / totalHadith) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-16 sm:pb-20">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-100 p-2 rounded-xl">
-                <BookOpen className="h-6 w-6 text-purple-600" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-purple-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Hadist Pilihan</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-lg sm:text-xl font-bold">Hadist Pilihan</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {completedCount}/{totalHadith} hadist dipelajari
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+                <span className="font-bold text-sm sm:text-base">{hearts}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-                <span className="font-bold">{xp}</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 fill-amber-500" />
+                <span className="font-bold text-sm sm:text-base">{xp}</span>
               </div>
             </div>
           </div>
@@ -57,21 +57,21 @@ const HadithPage = () => {
       </div>
 
       {/* Progress Section */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-6 text-white mb-8">
-          <h2 className="text-lg font-semibold mb-2">Progres Belajar</h2>
-          <div className="flex items-center gap-4">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white mb-4 sm:mb-6 md:mb-8">
+          <h2 className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2">Progres Belajar</h2>
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="flex-1">
               <Progress
                 value={progressPercentage}
-                className="h-4 bg-purple-400"
+                className="h-3 sm:h-4 bg-purple-400"
               />
             </div>
-            <span className="font-bold text-xl">
+            <span className="font-bold text-lg sm:text-xl">
               {Math.round(progressPercentage)}%
             </span>
           </div>
-          <p className="text-purple-100 text-sm mt-2">
+          <p className="text-purple-100 text-xs sm:text-sm mt-1.5 sm:mt-2">
             {completedCount === totalHadith
               ? "🎉 Semua hadist sudah dipelajari!"
               : `${totalHadith - completedCount} hadist lagi untuk menyelesaikan semua`}
@@ -79,35 +79,35 @@ const HadithPage = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <Button variant="hadith" size="sm" className="rounded-full">
+        <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-wrap">
+          <Button variant="hadith" size="sm" className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3">
             Semua
           </Button>
           <Button
             variant="hadithOutline"
             size="sm"
-            className="rounded-full"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
           >
             Akhlak
           </Button>
           <Button
             variant="hadithOutline"
             size="sm"
-            className="rounded-full"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
           >
             Iman
           </Button>
           <Button
             variant="hadithOutline"
             size="sm"
-            className="rounded-full"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
           >
             Keluarga
           </Button>
         </div>
 
         {/* Hadith List */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {HADITH_LIST.map((hadith, index) => {
             const isCompleted = isHadithCompleted(String(hadith.id));
 
@@ -124,39 +124,39 @@ const HadithPage = () => {
               >
                 <div
                   className={`
-                    relative p-6 rounded-2xl border-2 transition-all duration-300
+                    relative p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300
                     ${
                       isCompleted
                         ? "bg-purple-50 border-purple-300"
                         : isLocked
                           ? "bg-gray-50 border-gray-200"
-                          : "bg-white border-purple-200 hover:border-purple-400 hover:shadow-lg"
+                          : "bg-white border-purple-200 hover:border-purple-400 hover:shadow-lg active:scale-[0.99]"
                     }
                   `}
                 >
                   {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
                     {isCompleted ? (
-                      <div className="flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Selesai
+                      <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 text-purple-700 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
+                        <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Selesai</span>
                       </div>
                     ) : isLocked ? (
-                      <Lock className="h-5 w-5 text-gray-400" />
+                      <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     ) : (
-                      <div className="flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                        <Play className="h-4 w-4" />
-                        Mulai
+                      <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 text-purple-700 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
+                        <Play className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Mulai</span>
                       </div>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-2.5 sm:gap-4">
                     {/* Number Badge */}
                     <div
                       className={`
-                        w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0
+                        w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0
                         ${
                           isCompleted
                             ? "bg-purple-500 text-white"
@@ -170,9 +170,9 @@ const HadithPage = () => {
                     </div>
 
                     {/* Text Content */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-8 sm:pr-16">
                       <h3
-                        className={`font-bold text-lg mb-2 ${isLocked ? "text-gray-400" : ""}`}
+                        className={`font-bold text-sm sm:text-lg mb-1 sm:mb-2 ${isLocked ? "text-gray-400" : ""}`}
                       >
                         {hadith.title}
                       </h3>
@@ -180,7 +180,7 @@ const HadithPage = () => {
                       {/* Arabic Text Preview */}
                       <p
                         className={`
-                          text-2xl font-arabic mb-2 line-clamp-1
+                          text-lg sm:text-2xl font-arabic mb-1 sm:mb-2 line-clamp-1
                           ${isLocked ? "text-gray-300" : "text-gray-700"}
                         `}
                         dir="rtl"
@@ -191,7 +191,7 @@ const HadithPage = () => {
                       {/* Translation Preview */}
                       <p
                         className={`
-                          text-sm line-clamp-2 italic
+                          text-xs sm:text-sm line-clamp-2 italic
                           ${isLocked ? "text-gray-300" : "text-muted-foreground"}
                         `}
                       >
@@ -199,10 +199,10 @@ const HadithPage = () => {
                       </p>
 
                       {/* Meta Info */}
-                      <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-3">
                         <span
                           className={`
-                            text-xs px-2 py-1 rounded-full
+                            text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full
                             ${isLocked ? "bg-gray-100 text-gray-400" : "bg-purple-100 text-purple-600"}
                           `}
                         >
@@ -210,11 +210,11 @@ const HadithPage = () => {
                         </span>
                         <span
                           className={`
-                            text-xs flex items-center gap-1
+                            text-[10px] sm:text-xs flex items-center gap-1
                             ${isLocked ? "text-gray-300" : "text-muted-foreground"}
                           `}
                         >
-                          <Volume2 className="h-3 w-3" />
+                          <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           {hadith.narrator}
                         </span>
                       </div>

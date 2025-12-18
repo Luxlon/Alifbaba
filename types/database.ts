@@ -51,6 +51,16 @@ export interface HadithProgress {
   lastAttemptDate: string;
 }
 
+export interface IqroProgress {
+  id: number;
+  userId: string;
+  iqroId: number; // Reference to IQRO_DATA constant (1-6)
+  currentPage: number;
+  totalPages: number;
+  completed: boolean;
+  lastReadDate: string;
+}
+
 export interface Challenge {
   id: string;
   lessonId: string; // Can be hijaiyah letter, story, or hadith ID

@@ -47,6 +47,11 @@ export const Sidebar = ({ className }: Props) => {
             iconSrc="/hadith.svg"
           />
           <SidebarItem
+            label="Iqro"
+            href="/iqro"
+            iconSrc="/iqro.svg"
+          />
+          <SidebarItem
             label="Leaderboard"
             href="/leaderboard"
             iconSrc="/leaderboard.svg"

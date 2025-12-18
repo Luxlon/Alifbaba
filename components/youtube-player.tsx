@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward } from "lucide-react";
+import { useState } from "react";
+import { Play } from "lucide-react";
 
 interface YouTubePlayerProps {
   videoId: string;
   title?: string;
   onVideoEnd?: () => void;
-  onVideoProgress?: (progress: number) => void;
   autoplay?: boolean;
 }
 
@@ -16,12 +14,9 @@ export const YouTubePlayer = ({
   videoId,
   title,
   onVideoEnd,
-  onVideoProgress,
   autoplay = false,
 }: YouTubePlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   // YouTube embed URL
   const embedUrl = `https://www.youtube.com/embed/${videoId}?${
@@ -29,28 +24,8 @@ export const YouTubePlayer = ({
   }enablejsapi=1&rel=0&modestbranding=1`;
 
   const handlePlay = () => {
-    setIsPlaying(true);
     setHasStarted(true);
   };
-
-  // Simulate video progress (real implementation would use YouTube API)
-  useEffect(() => {
-    if (isPlaying && progress < 100) {
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = Math.min(prev + 1, 100);
-          onVideoProgress?.(newProgress);
-          if (newProgress >= 100) {
-            onVideoEnd?.();
-            setIsPlaying(false);
-          }
-          return newProgress;
-        });
-      }, 300); // Fast for demo, adjust for real video
-
-      return () => clearInterval(interval);
-    }
-  }, [isPlaying, progress, onVideoEnd, onVideoProgress]);
 
   return (
     <div className="w-full">
@@ -98,21 +73,6 @@ export const YouTubePlayer = ({
         )}
       </div>
 
-      {/* Progress Bar (simulated) */}
-      {hasStarted && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-            <span>Progress</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-amber-500 transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -17,9 +17,9 @@ export default function Home() {
               AlifBaBa
             </h1>
           </div>
-          <Link href="/learn">
+          {/* <Link href="/learn">
             <Button variant="primary">Mulai Belajar</Button>
-          </Link>
+          </Link> */}
         </header>
 
         {/* Hero */}
@@ -36,14 +36,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/learn">
                 <Button size="lg" variant="secondary" className="w-full sm:w-auto text-lg px-8">
-                  🚀 Mulai Gratis
+                  🚀 Mulai
                 </Button>
               </Link>
-              <Link href="/hijaiyah">
+              {/* <Link href="/hijaiyah">
                 <Button size="lg" variant="primaryOutline" className="w-full sm:w-auto text-lg px-8">
                   Lihat Materi
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </div>
           

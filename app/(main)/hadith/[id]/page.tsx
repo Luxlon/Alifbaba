@@ -216,39 +216,39 @@ const HadithDetailPage = () => {
   if (phase === "intro") {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
             <Link href="/hadith">
-              <Button variant="ghost" size="sm">
-                <X className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0">
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+                <span className="font-bold text-sm sm:text-base">{hearts}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-                <span className="font-bold">{xp} XP</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 fill-amber-500" />
+                <span className="font-bold text-sm sm:text-base">{xp} XP</span>
               </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">📿</div>
-            <h1 className="text-3xl font-bold mb-2">{hadith.title}</h1>
-            <p className="text-muted-foreground">{hadith.narrator}</p>
+          <div className="text-center mb-4 sm:mb-6 lg:mb-8">
+            <div className="text-4xl sm:text-5xl lg:text-6xl mb-2 sm:mb-4">📿</div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{hadith.title}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">{hadith.narrator}</p>
           </div>
 
           {/* Hadith Card */}
-          <div className="bg-white rounded-2xl border-2 p-8 mb-8 shadow-lg">
+          <div className="bg-white rounded-xl sm:rounded-2xl border-2 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 shadow-lg">
             {/* Arabic Text */}
-            <div className="bg-purple-50 rounded-xl p-6 mb-6 text-center">
+            <div className="bg-purple-50 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 text-center">
               <p
-                className="text-3xl font-arabic leading-loose text-gray-800"
+                className="text-xl sm:text-2xl lg:text-3xl font-arabic leading-loose text-gray-800"
                 dir="rtl"
               >
                 {hadith.arabicText}
@@ -256,21 +256,21 @@ const HadithDetailPage = () => {
             </div>
 
             {/* Translation */}
-            <p className="text-lg text-center text-muted-foreground italic">
+            <p className="text-base sm:text-lg text-center text-muted-foreground italic">
               "{hadith.translation}"
             </p>
 
             {/* Category Badge */}
-            <div className="flex justify-center mt-6">
-              <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium">
+            <div className="flex justify-center mt-4 sm:mt-6">
+              <span className="bg-purple-100 text-purple-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
                 {hadith.category}
               </span>
             </div>
           </div>
 
           {/* Instructions */}
-          <div className="bg-purple-100 rounded-xl p-4 mb-8 text-center">
-            <p className="text-sm text-purple-800">
+          <div className="bg-purple-100 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8 text-center">
+            <p className="text-xs sm:text-sm text-purple-800">
               👂 Dengarkan pengucapan hadist, lalu jawab quiz untuk mendapat XP!
             </p>
           </div>
@@ -279,7 +279,7 @@ const HadithDetailPage = () => {
           <Button
             variant="hadith"
             size="lg"
-            className="w-full text-lg h-14"
+            className="w-full text-base sm:text-lg h-12 sm:h-14"
             onClick={() => setPhase("listening")}
           >
             Mulai Belajar →
@@ -293,35 +293,35 @@ const HadithDetailPage = () => {
   if (phase === "listening") {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-5 w-5" />
+          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+            <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 sm:h-9 sm:w-9 p-0">
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             <div className="text-center">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 Dengarkan {listenedCount > 0 ? `(${listenedCount}x)` : ""}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-              <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+              <span className="font-bold text-sm sm:text-base">{hearts}</span>
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold">{hadith.title}</h2>
-            <p className="text-muted-foreground">{hadith.narrator}</p>
+          <div className="text-center mb-4 sm:mb-6 lg:mb-8">
+            <h2 className="text-xl sm:text-2xl font-bold">{hadith.title}</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">{hadith.narrator}</p>
           </div>
 
           {/* Hadith Card */}
-          <div className="bg-white rounded-2xl border-2 p-8 mb-8 shadow-lg">
+          <div className="bg-white rounded-xl sm:rounded-2xl border-2 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 shadow-lg">
             {/* Arabic Text */}
-            <div className="bg-purple-50 rounded-xl p-6 mb-6 text-center">
+            <div className="bg-purple-50 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 text-center">
               <p
-                className="text-3xl font-arabic leading-loose text-gray-800"
+                className="text-xl sm:text-2xl lg:text-3xl font-arabic leading-loose text-gray-800"
                 dir="rtl"
               >
                 {hadith.arabicText}
@@ -329,44 +329,45 @@ const HadithDetailPage = () => {
             </div>
 
             {/* Translation */}
-            <p className="text-lg text-center text-muted-foreground italic">
+            <p className="text-base sm:text-lg text-center text-muted-foreground italic">
               "{hadith.translation}"
             </p>
           </div>
 
           {/* Audio Player */}
-          <div className="bg-white rounded-2xl border-2 p-6 mb-8">
-            <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl border-2 p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleRestart}
                 disabled={!isPlaying && audioProgress === 0}
+                className="h-8 w-8 sm:h-10 sm:w-10"
               >
-                <RotateCcw className="h-5 w-5" />
+                <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
 
               <button
                 onClick={handlePlayPause}
                 className={`
-                  w-16 h-16 rounded-full flex items-center justify-center transition-all
+                  w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center transition-all active:scale-95
                   ${isPlaying ? "bg-purple-100 text-purple-600" : "bg-purple-500 text-white"}
                 `}
               >
                 {isPlaying ? (
-                  <Pause className="h-8 w-8" />
+                  <Pause className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8" />
                 ) : (
-                  <Play className="h-8 w-8 ml-1" />
+                  <Play className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 ml-0.5 sm:ml-1" />
                 )}
               </button>
 
-              <div className="w-10"></div>
+              <div className="w-8 sm:w-10"></div>
             </div>
 
             {/* Progress Bar */}
-            <Progress value={audioProgress} className="h-2" />
+            <Progress value={audioProgress} className="h-1.5 sm:h-2" />
 
-            <p className="text-center text-sm text-muted-foreground mt-2">
+            <p className="text-center text-xs sm:text-sm text-muted-foreground mt-2">
               {isPlaying
                 ? "Sedang memutar..."
                 : listenedCount > 0
@@ -379,12 +380,12 @@ const HadithDetailPage = () => {
           <Button
             variant="hadith"
             size="lg"
-            className="w-full text-lg h-14"
+            className="w-full text-base sm:text-lg h-12 sm:h-14"
             onClick={() => setPhase("quiz")}
             disabled={listenedCount === 0}
           >
             {listenedCount === 0
-              ? "Dengarkan hadist terlebih dahulu"
+              ? "Dengarkan dulu"
               : "Lanjut ke Quiz →"}
           </Button>
         </div>
@@ -398,29 +399,29 @@ const HadithDetailPage = () => {
       <div className="min-h-screen bg-white">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-5 w-5" />
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+            <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 sm:h-9 sm:w-9 p-0">
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <div className="flex-1 mx-4">
-              <Progress value={quizProgress} className="h-3" />
+            <div className="flex-1 mx-3 sm:mx-4">
+              <Progress value={quizProgress} className="h-2 sm:h-3" />
             </div>
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-              <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+              <span className="font-bold text-sm sm:text-base">{hearts}</span>
             </div>
           </div>
 
           {/* Quiz Content */}
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-2xl mx-auto">
               {/* Question */}
-              <h2 className="text-2xl font-bold mb-8 text-center">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 lg:mb-8 text-center">
                 {currentQuestion.question}
               </h2>
 
               {/* Options */}
-              <div className="space-y-3 mb-8">
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 lg:mb-8">
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = selectedAnswer === option;
                   let optionStyle =
@@ -442,15 +443,15 @@ const HadithDetailPage = () => {
                       onClick={() => handleSelectAnswer(option)}
                       disabled={showResult}
                       className={`
-                        w-full p-6 rounded-xl border-2 text-left transition-all
+                        w-full p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl border-2 text-left transition-all active:scale-[0.98]
                         ${optionStyle}
                         ${showResult ? "cursor-default" : ""}
                       `}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         <div
                           className={`
-                            w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold
+                            w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs sm:text-sm
                             ${
                               isSelected
                                 ? "border-purple-500 bg-purple-500 text-white"
@@ -472,13 +473,13 @@ const HadithDetailPage = () => {
                           {String.fromCharCode(65 + index)}
                         </div>
 
-                        <span className="text-lg font-medium flex-1">
+                        <span className="text-sm sm:text-base lg:text-lg font-medium flex-1">
                           {option}
                         </span>
 
                         {showResult &&
                           option === currentQuestion.correctAnswer && (
-                            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 flex-shrink-0" />
                           )}
                       </div>
                     </button>
@@ -493,7 +494,7 @@ const HadithDetailPage = () => {
                   disabled={selectedAnswer === null}
                   size="lg"
                   variant="hadith"
-                  className="w-full text-lg h-14"
+                  className="w-full text-base sm:text-lg h-12 sm:h-14"
                 >
                   Cek Jawaban
                 </Button>
@@ -502,7 +503,7 @@ const HadithDetailPage = () => {
                   onClick={handleContinue}
                   size="lg"
                   variant={isCorrect ? "hadith" : "danger"}
-                  className="w-full text-lg h-14"
+                  className="w-full text-base sm:text-lg h-12 sm:h-14"
                 >
                   Lanjut
                 </Button>
@@ -523,16 +524,16 @@ const HadithDetailPage = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-        <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8 lg:py-12">
           {/* Result Icon */}
-          <div className="text-center mb-8">
-            <div className="text-8xl mb-4 animate-bounce">
+          <div className="text-center mb-4 sm:mb-6 lg:mb-8">
+            <div className="text-5xl sm:text-6xl lg:text-8xl mb-2 sm:mb-4 animate-bounce">
               {isPassed ? "🎉" : "💪"}
             </div>
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">
               {isPassed ? "Hebat!" : "Tetap Semangat!"}
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground">
               {isPassed
                 ? `Kamu berhasil mempelajari hadist "${hadith.title}"!`
                 : "Coba lagi untuk hasil yang lebih baik!"}
@@ -540,52 +541,52 @@ const HadithDetailPage = () => {
           </div>
 
           {/* Score Display */}
-          <div className="bg-white rounded-2xl border-2 p-8 mb-6 shadow-lg">
-            <div className="text-center mb-6">
-              <div className="text-6xl font-bold text-purple-600 mb-2">
+          <div className="bg-white rounded-xl sm:rounded-2xl border-2 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 shadow-lg">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="text-4xl sm:text-5xl lg:text-6xl font-bold text-purple-600 mb-1 sm:mb-2">
                 {score}%
               </div>
-              <Progress value={score} className="h-4 mb-2" />
-              <div className="text-sm text-muted-foreground">
+              <Progress value={score} className="h-3 sm:h-4 mb-1 sm:mb-2" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 {correctAnswersCount}/{quizQuestions.length} jawaban benar
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Star className="h-6 w-6 text-amber-500 fill-amber-500" />
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-amber-500 fill-amber-500" />
                 </div>
-                <div className="font-bold text-2xl">
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl">
                   +{40 + correctAnswersCount * 10}
                 </div>
-                <div className="text-sm text-muted-foreground">XP</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">XP</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-2xl">🪙</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <span className="text-lg sm:text-xl lg:text-2xl">🪙</span>
                 </div>
-                <div className="font-bold text-2xl">+20</div>
-                <div className="text-sm text-muted-foreground">Poin</div>
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl">+20</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Poin</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-2xl">📿</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <span className="text-lg sm:text-xl lg:text-2xl">📿</span>
                 </div>
-                <div className="font-bold text-2xl">1</div>
-                <div className="text-sm text-muted-foreground">Hadist</div>
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl">1</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Hadist</div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <Link href="/hadith">
               <Button
                 size="lg"
                 variant="hadith"
-                className="w-full text-lg h-14"
+                className="w-full text-base sm:text-lg h-12 sm:h-14"
               >
                 Lanjut ke Hadist Berikutnya
               </Button>
@@ -595,14 +596,14 @@ const HadithDetailPage = () => {
               <Button
                 size="lg"
                 variant="hadithOutline"
-                className="w-full text-lg h-14"
+                className="w-full text-base sm:text-lg h-12 sm:h-14"
               >
                 Pelajari Ulang
               </Button>
             </Link>
 
             <Link href="/learn">
-              <Button size="lg" variant="ghost" className="w-full text-lg h-14">
+              <Button size="lg" variant="ghost" className="w-full text-base sm:text-lg h-12 sm:h-14">
                 Kembali ke Beranda
               </Button>
             </Link>

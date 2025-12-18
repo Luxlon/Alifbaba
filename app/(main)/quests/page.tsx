@@ -77,16 +77,16 @@ const QuestsPage = () => {
     return (
       <div
         className={`
-          border-2 rounded-xl p-5 transition-all
+          border-2 rounded-lg sm:rounded-xl p-3 sm:p-5 transition-all active:scale-[0.99]
           ${quest.completed && !quest.claimed ? `border-${color}-400 bg-${color}-50` : "border-slate-200"}
           ${quest.claimed ? "opacity-60" : ""}
         `}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Icon */}
           <div
             className={`
-              w-14 h-14 rounded-xl flex items-center justify-center text-2xl
+              w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center text-lg sm:text-2xl
               ${quest.completed ? `bg-${color}-100` : "bg-slate-100"}
             `}
           >
@@ -94,33 +94,33 @@ const QuestsPage = () => {
           </div>
 
           {/* Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold">{quest.title}</h3>
+              <h3 className="font-bold text-sm sm:text-base truncate">{quest.title}</h3>
               {quest.completed && quest.claimed && (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
               )}
             </div>
-            <p className="text-sm text-muted-foreground mb-3">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
               {quest.description}
             </p>
 
             {/* Progress */}
-            <div className="mb-3">
+            <div className="mb-2 sm:mb-3">
               <div className="flex justify-between text-xs mb-1">
                 <span>
                   {quest.progress}/{quest.target}
                 </span>
                 <span>{progressPercent}%</span>
               </div>
-              <Progress value={progressPercent} className="h-2" />
+              <Progress value={progressPercent} className="h-1.5 sm:h-2" />
             </div>
 
             {/* Reward */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
                   {quest.rewardXp} XP
                 </span>
                 <span className="flex items-center gap-1">
@@ -133,9 +133,9 @@ const QuestsPage = () => {
                   size="sm"
                   variant="secondary"
                   onClick={() => handleClaimReward(quest.id)}
-                  className="animate-pulse"
+                  className="animate-pulse h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <Gift className="h-4 w-4 mr-1" />
+                  <Gift className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Klaim
                 </Button>
               )}
@@ -147,10 +147,36 @@ const QuestsPage = () => {
   };
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
+    <div className="flex flex-col lg:flex-row-reverse gap-4 sm:gap-6 lg:gap-[48px] px-3 sm:px-4 lg:px-6">
+      {/* Mobile Stats Bar */}
+      <div className="lg:hidden grid grid-cols-3 gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-3 rounded-lg">
+        <div className="text-center">
+          <div className="text-xs opacity-80">Daily</div>
+          <div className="font-bold text-sm">{dailyQuests.filter((q) => q.completed).length}/{dailyQuests.length}</div>
+        </div>
+        <div className="text-center border-x border-white/20">
+          <div className="text-xs opacity-80">Weekly</div>
+          <div className="font-bold text-sm">{weeklyQuests.filter((q) => q.completed).length}/{weeklyQuests.length}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-xs opacity-80">Achieve</div>
+          <div className="font-bold text-sm">{achievements.filter((q) => q.completed).length}/{achievements.length}</div>
+        </div>
+      </div>
+
+      {/* Unclaimed Rewards - Mobile */}
+      {unclaimedQuests.length > 0 && (
+        <div className="lg:hidden bg-amber-100 border-2 border-amber-300 p-3 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Gift className="h-4 w-4 text-amber-600" />
+            <span className="font-bold text-amber-800 text-sm">{unclaimedQuests.length} hadiah menunggu!</span>
+          </div>
+        </div>
+      )}
+
       <StickyWrapper>
         {/* Stats Card */}
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-xl">
+        <div className="hidden lg:block bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-xl">
           <h3 className="font-bold mb-3">Statistik Quest</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -176,7 +202,7 @@ const QuestsPage = () => {
 
         {/* Unclaimed Rewards */}
         {unclaimedQuests.length > 0 && (
-          <div className="bg-amber-100 border-2 border-amber-300 p-4 rounded-xl">
+          <div className="hidden lg:block bg-amber-100 border-2 border-amber-300 p-4 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <Gift className="h-5 w-5 text-amber-600" />
               <h3 className="font-bold text-amber-800">Hadiah Menunggu!</h3>
@@ -188,7 +214,7 @@ const QuestsPage = () => {
         )}
 
         {/* User Stats */}
-        <div className="border-2 rounded-xl p-4 space-y-3">
+        <div className="hidden lg:block border-2 rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-amber-500" />
             <span className="font-bold">{formatXP(xp)} XP</span>
@@ -205,25 +231,25 @@ const QuestsPage = () => {
       </StickyWrapper>
 
       <FeedWrapper>
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-neutral-700 mb-2">
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-neutral-700 mb-1 sm:mb-2">
             Quest & Tantangan 🎯
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Selesaikan quest untuk mendapatkan hadiah!
           </p>
         </div>
 
         {/* Daily Quests */}
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-blue-500" />
-            <h2 className="text-xl font-bold">Quest Harian</h2>
-            <span className="text-sm text-muted-foreground">
+        <section className="mb-6 sm:mb-8 lg:mb-10">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+            <h2 className="text-lg sm:text-xl font-bold">Quest Harian</h2>
+            <span className="text-xs sm:text-sm text-muted-foreground">
               Reset setiap hari
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {dailyQuests.map((quest) => (
               <QuestCard key={quest.id} quest={quest} color="blue" />
             ))}
@@ -231,15 +257,15 @@ const QuestsPage = () => {
         </section>
 
         {/* Weekly Quests */}
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Flame className="h-5 w-5 text-orange-500" />
-            <h2 className="text-xl font-bold">Quest Mingguan</h2>
-            <span className="text-sm text-muted-foreground">
+        <section className="mb-6 sm:mb-8 lg:mb-10">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+            <h2 className="text-lg sm:text-xl font-bold">Quest Mingguan</h2>
+            <span className="text-xs sm:text-sm text-muted-foreground">
               Reset setiap minggu
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {weeklyQuests.map((quest) => (
               <QuestCard key={quest.id} quest={quest} color="orange" />
             ))}
@@ -247,15 +273,15 @@ const QuestsPage = () => {
         </section>
 
         {/* Achievements */}
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            <h2 className="text-xl font-bold">Pencapaian</h2>
-            <span className="text-sm text-muted-foreground">
+        <section className="mb-6 sm:mb-8 lg:mb-10">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+            <h2 className="text-lg sm:text-xl font-bold">Pencapaian</h2>
+            <span className="text-xs sm:text-sm text-muted-foreground">
               Selesaikan untuk hadiah besar!
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {achievements.map((quest) => (
               <QuestCard key={quest.id} quest={quest} color="amber" />
             ))}

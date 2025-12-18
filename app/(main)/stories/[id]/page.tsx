@@ -58,18 +58,6 @@ const StoryDetailPage = () => {
   // Handle video end
   const handleVideoEnd = () => {
     setVideoWatched(true);
-    toast.success("Video selesai!", {
-      description: hasQuiz
-        ? "Sekarang jawab quiz untuk mendapat XP!"
-        : "Kamu berhasil menonton kisah ini!",
-    });
-
-    if (hasQuiz) {
-      setTimeout(() => setPhase("quiz"), 1500);
-    } else {
-      // No quiz, complete immediately
-      handleLessonComplete(100);
-    }
   };
 
   // Handle skip video (for demo/testing)
@@ -148,30 +136,30 @@ const StoryDetailPage = () => {
   if (phase === "video") {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <Link href="/stories">
               <Button variant="ghost" size="sm">
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+                <span className="font-bold text-sm sm:text-base">{hearts}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-                <span className="font-bold">{xp} XP</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 fill-amber-500" />
+                <span className="font-bold text-sm sm:text-base">{xp} XP</span>
               </div>
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold mb-2">{story.title}</h1>
-            <p className="text-muted-foreground">{story.description}</p>
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{story.title}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">{story.description}</p>
           </div>
 
           {/* Video Player */}
@@ -181,28 +169,30 @@ const StoryDetailPage = () => {
             onVideoEnd={handleVideoEnd}
           />
 
-          {/* Skip Button (for demo) */}
-          <div className="mt-6 flex justify-center gap-4">
-            {!videoWatched && (
-              <Button variant="ghost" onClick={handleSkipVideo}>
-                Skip Video (Demo)
+          {/* Action Button - Always show */}
+          {hasQuiz && (
+            <div className="mt-4 sm:mt-6 md:mt-8 flex justify-center">
+              <Button 
+                variant="story" 
+                size="lg"
+                onClick={() => setPhase("quiz")}
+                className="text-base sm:text-lg md:text-xl px-6 sm:px-8 md:px-12 py-4 sm:py-6 md:py-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95"
+              >
+                🎯 Lanjut ke Quiz
               </Button>
-            )}
-            {videoWatched && hasQuiz && (
-              <Button variant="story" onClick={() => setPhase("quiz")}>
-                Lanjut ke Quiz →
-              </Button>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Info */}
-          <div className="mt-8 bg-amber-100 rounded-xl p-4 text-center">
-            <p className="text-sm text-amber-800">
-              {hasQuiz
-                ? `📝 Setelah video selesai, jawab ${questions.length} pertanyaan untuk mendapat XP!`
-                : "📺 Tonton video sampai selesai untuk menyelesaikan kisah ini!"}
-            </p>
-          </div>
+          {/* Info - Only show before video watched */}
+          {!videoWatched && (
+            <div className="mt-4 sm:mt-6 md:mt-8 bg-amber-100 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xs sm:text-sm text-amber-800">
+                {hasQuiz
+                  ? `📝 Tonton video, lalu jawab ${questions.length} pertanyaan untuk mendapat XP!`
+                  : "📺 Tonton video sampai selesai untuk menyelesaikan kisah ini!"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -214,29 +204,29 @@ const StoryDetailPage = () => {
       <div className="min-h-screen bg-white">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 border-b">
             <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <div className="flex-1 mx-4">
-              <Progress value={quizProgress} className="h-3" />
+            <div className="flex-1 mx-2 sm:mx-4">
+              <Progress value={quizProgress} className="h-2 sm:h-3" />
             </div>
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-              <span className="font-bold">{hearts}</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+              <span className="font-bold text-sm sm:text-base">{hearts}</span>
             </div>
           </div>
 
           {/* Quiz Content */}
-          <div className="p-8">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
             <div className="max-w-2xl mx-auto">
               {/* Question */}
-              <h2 className="text-2xl font-bold mb-8 text-center">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6 md:mb-8 text-center">
                 {currentQuestion.question}
               </h2>
 
               {/* Options */}
-              <div className="space-y-3 mb-8">
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 md:mb-8">
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = selectedAnswer === index;
                   let optionStyle = "border-gray-200 hover:border-amber-300 hover:bg-amber-50/50";
@@ -257,16 +247,16 @@ const StoryDetailPage = () => {
                       onClick={() => handleSelectAnswer(index)}
                       disabled={showResult}
                       className={`
-                        w-full p-6 rounded-xl border-2 text-left transition-all
+                        w-full p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl border-2 text-left transition-all active:scale-[0.98]
                         ${optionStyle}
                         ${showResult ? "cursor-default" : ""}
                       `}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                         {/* Selection Indicator */}
                         <div
                           className={`
-                            w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold
+                            w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs sm:text-sm md:text-base flex-shrink-0
                             ${
                               isSelected
                                 ? "border-amber-500 bg-amber-500 text-white"
@@ -288,16 +278,16 @@ const StoryDetailPage = () => {
                         </div>
 
                         {/* Option Text */}
-                        <span className="text-lg font-medium flex-1">
+                        <span className="text-sm sm:text-base md:text-lg font-medium flex-1">
                           {option}
                         </span>
 
                         {/* Result Icon */}
                         {showResult && index === currentQuestion.correctAnswer && (
-                          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                          <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 flex-shrink-0" />
                         )}
                         {showResult && isSelected && !isCorrect && (
-                          <XCircle className="w-6 h-6 text-red-500" />
+                          <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0" />
                         )}
                       </div>
                     </button>
@@ -312,7 +302,7 @@ const StoryDetailPage = () => {
                   disabled={selectedAnswer === null || isChecking}
                   size="lg"
                   variant="story"
-                  className="w-full text-lg h-14"
+                  className="w-full text-base sm:text-lg h-12 sm:h-14"
                 >
                   {isChecking ? "Memeriksa..." : "Cek Jawaban"}
                 </Button>
@@ -321,7 +311,7 @@ const StoryDetailPage = () => {
                   onClick={handleContinue}
                   size="lg"
                   variant={isCorrect ? "story" : "danger"}
-                  className="w-full text-lg h-14"
+                  className="w-full text-base sm:text-lg h-12 sm:h-14"
                 >
                   Lanjut
                 </Button>
@@ -342,16 +332,16 @@ const StoryDetailPage = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
-        <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
           {/* Result Icon */}
-          <div className="text-center mb-8">
-            <div className="text-8xl mb-4 animate-bounce">
+          <div className="text-center mb-4 sm:mb-6 md:mb-8">
+            <div className="text-5xl sm:text-6xl md:text-8xl mb-2 sm:mb-4 animate-bounce">
               {isPassed ? "🎉" : "💪"}
             </div>
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
               {isPassed ? "Selesai!" : "Tetap Semangat!"}
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
               {isPassed
                 ? `Kamu berhasil menyelesaikan ${story.title}!`
                 : "Coba lagi untuk hasil yang lebih baik!"}
@@ -359,13 +349,13 @@ const StoryDetailPage = () => {
           </div>
 
           {/* Score Display */}
-          <div className="bg-white rounded-2xl border-2 p-8 mb-6 shadow-lg">
-            <div className="text-center mb-6">
-              <div className="text-6xl font-bold text-amber-600 mb-2">
+          <div className="bg-white rounded-xl sm:rounded-2xl border-2 p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 shadow-lg">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-amber-600 mb-1 sm:mb-2">
                 {score}%
               </div>
-              <Progress value={score} className="h-4 mb-2" />
-              <div className="text-sm text-muted-foreground">
+              <Progress value={score} className="h-3 sm:h-4 mb-1 sm:mb-2" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 {hasQuiz
                   ? `${correctAnswersCount}/${questions.length} jawaban benar`
                   : "Video selesai ditonton"}
@@ -373,35 +363,35 @@ const StoryDetailPage = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Star className="h-6 w-6 text-amber-500 fill-amber-500" />
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-amber-500 fill-amber-500" />
                 </div>
-                <div className="font-bold text-2xl">+{hasQuiz ? 50 + correctAnswersCount * 10 : 50}</div>
-                <div className="text-sm text-muted-foreground">XP</div>
+                <div className="font-bold text-lg sm:text-xl md:text-2xl">+{hasQuiz ? 50 + correctAnswersCount * 10 : 50}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">XP</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-2xl">🪙</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <span className="text-lg sm:text-xl md:text-2xl">🪙</span>
                 </div>
-                <div className="font-bold text-2xl">+25</div>
-                <div className="text-sm text-muted-foreground">Poin</div>
+                <div className="font-bold text-lg sm:text-xl md:text-2xl">+25</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Poin</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-2xl">📖</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                  <span className="text-lg sm:text-xl md:text-2xl">📖</span>
                 </div>
-                <div className="font-bold text-2xl">1</div>
-                <div className="text-sm text-muted-foreground">Kisah</div>
+                <div className="font-bold text-lg sm:text-xl md:text-2xl">1</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Kisah</div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <Link href="/stories">
-              <Button size="lg" variant="story" className="w-full text-lg h-14">
+              <Button size="lg" variant="story" className="w-full text-base sm:text-lg h-12 sm:h-14">
                 Lanjut ke Kisah Berikutnya
               </Button>
             </Link>
@@ -410,14 +400,14 @@ const StoryDetailPage = () => {
               <Button
                 size="lg"
                 variant="storyOutline"
-                className="w-full text-lg h-14"
+                className="w-full text-base sm:text-lg h-12 sm:h-14"
               >
                 Tonton Ulang
               </Button>
             </Link>
 
             <Link href="/learn">
-              <Button size="lg" variant="ghost" className="w-full text-lg h-14">
+              <Button size="lg" variant="ghost" className="w-full text-base sm:text-lg h-12 sm:h-14">
                 Kembali ke Beranda
               </Button>
             </Link>
