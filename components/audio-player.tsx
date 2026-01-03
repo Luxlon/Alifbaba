@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Gauge } from "lucide-react";
 
 interface AudioPlayerProps {
   audioUrl: string;
   autoPlay?: boolean;
-  variant?: "button" | "inline";
+  variant?: "button" | "inline" | "full";
   size?: "sm" | "md" | "lg";
+  showSpeedControl?: boolean;
 }
 
 export const AudioPlayer = ({
@@ -16,9 +17,12 @@ export const AudioPlayer = ({
   autoPlay = false,
   variant = "button",
   size = "md",
+  showSpeedControl = false,
 }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -55,6 +59,7 @@ export const AudioPlayer = ({
         audioRef.current.currentTime = 0;
         setIsPlaying(false);
       } else {
+        audioRef.current.playbackRate = playbackRate;
         await audioRef.current.play();
         setIsPlaying(true);
       }
@@ -63,6 +68,105 @@ export const AudioPlayer = ({
       setHasError(true);
     }
   };
+
+  const handleSpeedChange = (rate: number) => {
+    setPlaybackRate(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
+    }
+    setShowSpeedMenu(false);
+  };
+
+  const handleSpeedChange = (rate: number) => {
+    setPlaybackRate(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
+    }
+    setShowSpeedMenu(false);
+  };
+
+  // Full variant with speed controls
+  if (variant === "full") {
+    return (
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Main Play Button */}
+        <div className="flex items-center justify-center gap-3 sm:gap-4">
+          <Button
+            onClick={handlePlay}
+            disabled={hasError}
+            size="lg"
+            variant="secondary"
+            className="rounded-full w-16 h-16 sm:w-20 sm:h-20 text-3xl sm:text-4xl shadow-lg hover:shadow-xl transition-all"
+          >
+            {hasError ? "❌" : isPlaying ? "⏸️" : "▶️"}
+          </Button>
+        </div>
+
+        {/* Speed Controls */}
+        {showSpeedControl && (
+          <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Gauge className="h-4 w-4" />
+              <span className="hidden sm:inline">Kecepatan:</span>
+            </div>
+            <div className="flex gap-1.5 sm:gap-2">
+              <button
+                onClick={() => handleSpeedChange(0.25)}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-lg font-medium transition ${
+                  playbackRate === 0.25
+                    ? "bg-emerald-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                0.25x
+              </button>
+              <button
+                onClick={() => handleSpeedChange(0.5)}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-lg font-medium transition ${
+                  playbackRate === 0.5
+                    ? "bg-emerald-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                0.5x
+              </button>
+              <button
+                onClick={() => handleSpeedChange(0.75)}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-lg font-medium transition ${
+                  playbackRate === 0.75
+                    ? "bg-emerald-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                0.75x
+              </button>
+              <button
+                onClick={() => handleSpeedChange(1.0)}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-lg font-medium transition ${
+                  playbackRate === 1.0
+                    ? "bg-emerald-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Normal
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Info */}
+        <div className="text-center">
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {hasError
+              ? "⚠️ Gagal memuat audio"
+              : isPlaying
+              ? `🔊 Memutar (${playbackRate}x)`
+              : "Tekan tombol untuk mendengarkan"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Button variant (round play button)
   if (variant === "button") {

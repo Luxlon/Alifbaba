@@ -155,6 +155,19 @@ export interface Lesson {
   unlocked: boolean;
 }
 
+// Hadith data structure
+export interface HadithData {
+  id: number;
+  title: string;
+  arabicText: string;
+  transliteration: string;
+  translation: string;
+  narrator: string;
+  category: "Akhlak" | "Ibadah" | "Keluarga" | "Ilmu";
+  audioFile: string;
+  difficulty: "easy" | "medium" | "hard";
+}
+
 // User stats for profile
 export interface UserStats {
   userId: string;

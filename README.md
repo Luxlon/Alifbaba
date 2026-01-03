@@ -86,7 +86,7 @@ alifbaba/
 │   ├── (main)/            # Main app routes
 │   │   ├── hijaiyah/      # Hijaiyah module
 │   │   ├── stories/       # Prophet stories
-│   │   ├── hadith/        # Hadith module
+│   │   ├── hadith/        # Hadith module (20 hadist)
 │   │   ├── quests/        # Quest & achievements
 │   │   ├── shop/          # Store
 │   │   ├── leaderboard/   # Rankings
@@ -95,9 +95,10 @@ alifbaba/
 │
 ├── components/            # React components
 │   ├── ui/               # UI components (buttons, etc)
-│   ├── audio-player.tsx  # Custom audio player
+│   ├── audio-player.tsx  # Custom audio player with speed controls
 │   ├── youtube-player.tsx # YouTube embed
 │   └── sidebar.tsx       # Navigation
+
 │
 ├── store/                # State management (Zustand)
 │   ├── use-user-progress.tsx

@@ -7,28 +7,27 @@ Daftar task yang perlu dikerjakan untuk melengkapi project.
 ## 🔴 URGENT (Prioritas Tinggi)
 
 ### 1. Upload Audio Files
-**Status**: ⬜ Not Started  
+**Status**: ⏳ In Progress  
 **Deadline**: ASAP  
 **Estimate**: 2-3 hari
 
 **What to do**:
 - [ ] Record/download pengucapan 28 huruf hijaiyah (alif-ya)
 - [ ] Record/download pengucapan 6 harakat (fathah, kasrah, dhammah, sukun, tanwin, tashdid)
-- [ ] Record/download 8 hadith dalam bahasa Arab
-- [ ] Convert ke format MP3 (96-128 kbps)
+- [x] ✅ **Hadith Audio** - COMPLETE! 20 hadist audio sudah tersedia
+  - Files tersimpan di: `public/audio/hadith/`
+  - Format: MP3 dengan nama Arab
+  - Audio player sudah terintegrasi dengan speed controls (0.25x, 0.5x, 0.75x, Normal)
 - [ ] Upload ke:
   - `public/audio/hijaiyah/alif.mp3` ... `ya.mp3`
   - `public/audio/hijaiyah/fathah.mp3` ... `tashdid.mp3`
-  - `public/audio/hadith/hadith-1.mp3` ... `hadith-8.mp3`
 
 **Resources**:
-- Qari profesional untuk recording
-- Atau download dari sumber yang legal
+- **Hadith**: ✅ DONE - Audio files sudah ada
+- **Hijaiyah**: Qari profesional untuk recording atau download dari sumber legal
 - Tools: Audacity untuk editing
 
----
-
-### 2. Replace YouTube Video IDs
+---### 2. Replace YouTube Video IDs
 **Status**: ⬜ Not Started  
 **Deadline**: ASAP  
 **Estimate**: 1 hari

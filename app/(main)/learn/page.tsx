@@ -10,14 +10,16 @@ import { formatXP, formatPoints } from "@/lib/progress";
 import { HIJAIYAH_LETTERS, PROPHET_STORIES, HADITH_LIST } from "@/constants";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const LearnPage = () => {
   const { xp, hearts, points, streak, updateStreak } = useUserProgress();
   const { getTotalCompleted, isHijaiyahCompleted, isStoryCompleted, isHadithCompleted } = useLessonProgress();
+  const [mounted, setMounted] = useState(false);
 
-  // Update streak on page load
+  // Prevent hydration mismatch by only rendering after client-side mount
   useEffect(() => {
+    setMounted(true);
     updateStreak();
   }, [updateStreak]);
 
@@ -49,6 +51,30 @@ const LearnPage = () => {
   };
 
   const continueSection = getContinueSection();
+
+  // Show loading skeleton during hydration
+  if (!mounted) {
+    return (
+      <div className="flex flex-col lg:flex-row-reverse gap-4 lg:gap-[48px] px-3 sm:px-4 md:px-6">
+        <div className="hidden lg:block">
+          <StickyWrapper>
+            <div className="bg-emerald-500 text-white p-4 rounded-xl animate-pulse h-32" />
+          </StickyWrapper>
+        </div>
+        <FeedWrapper>
+          <div className="mb-6 animate-pulse">
+            <div className="h-8 bg-neutral-200 rounded w-3/4 mb-2" />
+            <div className="h-4 bg-neutral-200 rounded w-1/2" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-neutral-200 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </FeedWrapper>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row-reverse gap-4 lg:gap-[48px] px-3 sm:px-4 md:px-6">

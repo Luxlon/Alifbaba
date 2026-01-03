@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { HADITH_LIST } from "@/constants";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
+import { AudioPlayer } from "@/components/audio-player";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -16,6 +17,7 @@ import {
   Play,
   RotateCcw,
   CheckCircle2,
+  Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -57,6 +59,7 @@ const HadithDetailPage = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [listenedCount, setListenedCount] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -89,6 +92,7 @@ const HadithDetailPage = () => {
     if (!audioRef.current) {
       // Create audio element if it doesn't exist
       audioRef.current = new Audio(hadith.audioFile);
+      audioRef.current.playbackRate = playbackRate;
 
       audioRef.current.addEventListener("timeupdate", () => {
         if (audioRef.current) {
@@ -107,9 +111,11 @@ const HadithDetailPage = () => {
         });
       });
 
-      audioRef.current.addEventListener("error", () => {
-        // Fallback for demo - simulate audio playback
-        simulateAudioPlayback();
+      audioRef.current.addEventListener("error", (e) => {
+        console.error("Audio error:", e);
+        toast.error("Gagal memuat audio", {
+          description: "Pastikan file audio tersedia.",
+        });
       });
     }
 
@@ -117,31 +123,19 @@ const HadithDetailPage = () => {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(() => {
-        // Fallback for demo
-        simulateAudioPlayback();
+      audioRef.current.play().catch((error) => {
+        console.error("Play error:", error);
+        toast.error("Gagal memutar audio");
       });
       setIsPlaying(true);
     }
   };
 
-  // Simulate audio playback for demo
-  const simulateAudioPlayback = () => {
-    setIsPlaying(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 2;
-      setAudioProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsPlaying(false);
-        setListenedCount((prev) => prev + 1);
-        setAudioProgress(0);
-        toast.success("Audio selesai!", {
-          description: "Dengarkan lagi atau lanjut ke quiz.",
-        });
-      }
-    }, 100);
+  const handleSpeedChange = (rate: number) => {
+    setPlaybackRate(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
+    }
   };
 
   const handleRestart = () => {
@@ -255,6 +249,16 @@ const HadithDetailPage = () => {
               </p>
             </div>
 
+            {/* Transliteration */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 text-center">
+              <p className="text-xs sm:text-sm text-amber-700 font-medium mb-1">
+                Pelafalan Latin:
+              </p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-700 italic">
+                {hadith.transliteration}
+              </p>
+            </div>
+
             {/* Translation */}
             <p className="text-base sm:text-lg text-center text-muted-foreground italic">
               "{hadith.translation}"
@@ -328,6 +332,16 @@ const HadithDetailPage = () => {
               </p>
             </div>
 
+            {/* Transliteration */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 text-center">
+              <p className="text-xs sm:text-sm text-amber-700 font-medium mb-1">
+                Pelafalan Latin:
+              </p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-700 italic">
+                {hadith.transliteration}
+              </p>
+            </div>
+
             {/* Translation */}
             <p className="text-base sm:text-lg text-center text-muted-foreground italic">
               "{hadith.translation}"
@@ -365,11 +379,61 @@ const HadithDetailPage = () => {
             </div>
 
             {/* Progress Bar */}
-            <Progress value={audioProgress} className="h-1.5 sm:h-2" />
+            <Progress value={audioProgress} className="h-1.5 sm:h-2 mb-3 sm:mb-4" />
 
-            <p className="text-center text-xs sm:text-sm text-muted-foreground mt-2">
+            {/* Speed Controls */}
+            <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                <Gauge className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Kecepatan:</span>
+              </div>
+              <div className="flex gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => handleSpeedChange(0.25)}
+                  className={`px-2 sm:px-2.5 py-1 text-xs rounded-lg font-medium transition ${
+                    playbackRate === 0.25
+                      ? "bg-purple-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  0.25x
+                </button>
+                <button
+                  onClick={() => handleSpeedChange(0.5)}
+                  className={`px-2 sm:px-2.5 py-1 text-xs rounded-lg font-medium transition ${
+                    playbackRate === 0.5
+                      ? "bg-purple-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  0.5x
+                </button>
+                <button
+                  onClick={() => handleSpeedChange(0.75)}
+                  className={`px-2 sm:px-2.5 py-1 text-xs rounded-lg font-medium transition ${
+                    playbackRate === 0.75
+                      ? "bg-purple-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  0.75x
+                </button>
+                <button
+                  onClick={() => handleSpeedChange(1.0)}
+                  className={`px-2 sm:px-2.5 py-1 text-xs rounded-lg font-medium transition ${
+                    playbackRate === 1.0
+                      ? "bg-purple-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Normal
+                </button>
+              </div>
+            </div>
+
+            <p className="text-center text-xs sm:text-sm text-muted-foreground">
               {isPlaying
-                ? "Sedang memutar..."
+                ? `Sedang memutar (${playbackRate}x)...`
                 : listenedCount > 0
                   ? "Tekan untuk putar ulang"
                   : "Tekan untuk memutar"}
