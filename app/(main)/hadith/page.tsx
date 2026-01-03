@@ -1,197 +1,225 @@
-import { FeedWrapper } from "@/components/feed-wrapper";
-import { StickyWrapper } from "@/components/sticky-wrapper";
+"use client";
+
+import { HADITH_LIST } from "@/constants";
+import { useLessonProgress } from "@/store/use-lesson-progress";
+import { useUserProgress } from "@/store/use-user-progress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
-
-// Data hadist - ANDA BISA MENAMBAHKAN HADIST BARU DI SINI
-// Format: { id, title, arabicText, translation, narrator, category }
-const hadithList = [
-  {
-    id: 1,
-    title: "Kasih Sayang",
-    arabicText: "الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ",
-    translation: "Orang-orang yang penyayang akan disayangi oleh Allah Yang Maha Penyayang.",
-    narrator: "HR. Tirmidzi",
-    category: "Akhlak",
-    completed: true,
-  },
-  {
-    id: 2,
-    title: "Senyum adalah Sedekah",
-    arabicText: "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ صَدَقَةٌ",
-    translation: "Senyummu di hadapan saudaramu adalah sedekah.",
-    narrator: "HR. Tirmidzi",
-    category: "Akhlak",
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Kebersihan",
-    arabicText: "الطَّهُورُ شَطْرُ الْإِيمَانِ",
-    translation: "Kebersihan adalah sebagian dari iman.",
-    narrator: "HR. Muslim",
-    category: "Iman",
-    completed: false,
-  },
-  {
-    id: 4,
-    title: "Berbuat Baik kepada Orang Tua",
-    arabicText: "رِضَا اللَّهِ فِي رِضَا الْوَالِدَيْنِ",
-    translation: "Ridha Allah tergantung pada ridha orang tua.",
-    narrator: "HR. Tirmidzi",
-    category: "Keluarga",
-    completed: false,
-  },
-  {
-    id: 5,
-    title: "Malu",
-    arabicText: "الْحَيَاءُ شُعْبَةٌ مِنَ الْإِيمَانِ",
-    translation: "Malu adalah sebagian dari iman.",
-    narrator: "HR. Bukhari & Muslim",
-    category: "Iman",
-    completed: false,
-  },
-  {
-    id: 6,
-    title: "Jujur",
-    arabicText: "إِنَّ الصِّدْقَ يَهْدِي إِلَى الْبِرِّ",
-    translation: "Sesungguhnya kejujuran membawa kepada kebaikan.",
-    narrator: "HR. Bukhari & Muslim",
-    category: "Akhlak",
-    completed: false,
-  },
-  {
-    id: 7,
-    title: "Tidak Marah",
-    arabicText: "لَا تَغْضَبْ",
-    translation: "Janganlah kamu marah.",
-    narrator: "HR. Bukhari",
-    category: "Akhlak",
-    completed: false,
-  },
-  {
-    id: 8,
-    title: "Menyayangi yang di Bumi",
-    arabicText: "ارْحَمُوا مَنْ فِي الْأَرْضِ يَرْحَمْكُمْ مَنْ فِي السَّمَاءِ",
-    translation: "Sayangilah yang di bumi, niscaya yang di langit akan menyayangimu.",
-    narrator: "HR. Tirmidzi",
-    category: "Akhlak",
-    completed: false,
-  },
-];
+import {
+  BookOpen,
+  CheckCircle2,
+  Lock,
+  Star,
+  Heart,
+  Play,
+  Volume2,
+} from "lucide-react";
 
 const HadithPage = () => {
-  const completedCount = hadithList.filter(h => h.completed).length;
-  const progressPercent = Math.round((completedCount / hadithList.length) * 100);
+  const { hearts, xp, points } = useUserProgress();
+  const { isHadithCompleted, getHadithProgress, getTotalCompleted } =
+    useLessonProgress();
 
-  const categories = [...new Set(hadithList.map(h => h.category))];
+  const completedCount = getTotalCompleted().hadith;
+  const totalHadith = HADITH_LIST.length;
+  const progressPercentage = (completedCount / totalHadith) * 100;
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
-      <StickyWrapper>
-        <div className="bg-purple-500 text-white p-4 rounded-xl">
-          <h3 className="font-bold mb-2">Hadist Pilihan</h3>
-          <p className="text-sm opacity-90">
-            Hadist-hadist pendek yang mudah dipelajari untuk anak-anak.
-          </p>
-        </div>
-        
-        <div className="border-2 rounded-xl p-4 space-y-4">
-          <h3 className="font-bold text-lg">Progress</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Hadist dipelajari</span>
-              <span>{completedCount}/{hadithList.length}</span>
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-16 sm:pb-20">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-purple-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl font-bold">Hadist Pilihan</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {completedCount}/{totalHadith} hadist dipelajari
+                </p>
+              </div>
             </div>
-            <Progress value={progressPercent} className="h-2" />
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500" />
+                <span className="font-bold text-sm sm:text-base">{hearts}</span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 fill-amber-500" />
+                <span className="font-bold text-sm sm:text-base">{xp}</span>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Progress Section */}
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white mb-4 sm:mb-6 md:mb-8">
+          <h2 className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2">Progres Belajar</h2>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex-1">
+              <Progress
+                value={progressPercentage}
+                className="h-3 sm:h-4 bg-purple-400"
+              />
+            </div>
+            <span className="font-bold text-lg sm:text-xl">
+              {Math.round(progressPercentage)}%
+            </span>
+          </div>
+          <p className="text-purple-100 text-xs sm:text-sm mt-1.5 sm:mt-2">
+            {completedCount === totalHadith
+              ? "🎉 Semua hadist sudah dipelajari!"
+              : `${totalHadith - completedCount} hadist lagi untuk menyelesaikan semua`}
+          </p>
         </div>
 
-        <div className="border-2 rounded-xl p-4">
-          <h3 className="font-bold text-lg mb-3">Kategori</h3>
-          <div className="space-y-2">
-            {categories.map(cat => (
-              <div key={cat} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-purple-400"></div>
-                <span className="text-sm">{cat}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </StickyWrapper>
-      
-      <FeedWrapper>
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-neutral-700 mb-2">
-            Hadist untuk Anak 📿
-          </h1>
-          <p className="text-muted-foreground">
-            Pelajari hadist-hadist pendek dengan teks Arab, terjemahan, dan audio.
-          </p>
+        {/* Category Filter */}
+        <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-wrap">
+          <Button variant="hadith" size="sm" className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3">
+            Semua
+          </Button>
+          <Button
+            variant="hadithOutline"
+            size="sm"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
+          >
+            Akhlak
+          </Button>
+          <Button
+            variant="hadithOutline"
+            size="sm"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
+          >
+            Iman
+          </Button>
+          <Button
+            variant="hadithOutline"
+            size="sm"
+            className="rounded-full text-xs sm:text-sm h-7 sm:h-8 px-2.5 sm:px-3"
+          >
+            Keluarga
+          </Button>
         </div>
 
         {/* Hadith List */}
-        <div className="space-y-4">
-          {hadithList.map((hadith, index) => {
-            const isLocked = index > 0 && !hadithList[index - 1].completed;
-            
+        <div className="space-y-3 sm:space-y-4">
+          {HADITH_LIST.map((hadith, index) => {
+            const isCompleted = isHadithCompleted(String(hadith.id));
+
+            // First hadith is always unlocked, others need previous to be completed
+            const previousCompleted =
+              index === 0 || isHadithCompleted(String(HADITH_LIST[index - 1].id));
+            const isLocked = !previousCompleted;
+
             return (
-              <Link 
+              <Link
                 key={hadith.id}
                 href={isLocked ? "#" : `/hadith/${hadith.id}`}
-                className={isLocked ? "cursor-not-allowed" : ""}
+                className={`block ${isLocked ? "cursor-not-allowed" : ""}`}
               >
-                <div 
+                <div
                   className={`
-                    border-2 rounded-xl p-5 transition mb-4
-                    ${hadith.completed ? "border-purple-300 bg-purple-50" : "border-slate-200"}
-                    ${isLocked ? "opacity-60" : "hover:shadow-md hover:border-purple-300"}
+                    relative p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300
+                    ${
+                      isCompleted
+                        ? "bg-purple-50 border-purple-300"
+                        : isLocked
+                          ? "bg-gray-50 border-gray-200"
+                          : "bg-white border-purple-200 hover:border-purple-400 hover:shadow-lg active:scale-[0.99]"
+                    }
                   `}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-purple-100 text-purple-600 px-2 py-1 rounded text-xs font-medium">
-                        {hadith.category}
-                      </span>
-                      {hadith.completed && (
-                        <span className="bg-emerald-100 text-emerald-600 px-2 py-1 rounded text-xs font-medium">
-                          ✓ Selesai
+                  {/* Status Badge */}
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                    {isCompleted ? (
+                      <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 text-purple-700 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
+                        <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Selesai</span>
+                      </div>
+                    ) : isLocked ? (
+                      <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                    ) : (
+                      <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 text-purple-700 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium">
+                        <Play className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Mulai</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex items-start gap-2.5 sm:gap-4">
+                    {/* Number Badge */}
+                    <div
+                      className={`
+                        w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0
+                        ${
+                          isCompleted
+                            ? "bg-purple-500 text-white"
+                            : isLocked
+                              ? "bg-gray-200 text-gray-400"
+                              : "bg-purple-100 text-purple-600"
+                        }
+                      `}
+                    >
+                      {index + 1}
+                    </div>
+
+                    {/* Text Content */}
+                    <div className="flex-1 min-w-0 pr-8 sm:pr-16">
+                      <h3
+                        className={`font-bold text-sm sm:text-lg mb-1 sm:mb-2 ${isLocked ? "text-gray-400" : ""}`}
+                      >
+                        {hadith.title}
+                      </h3>
+
+                      {/* Arabic Text Preview */}
+                      <p
+                        className={`
+                          text-lg sm:text-2xl font-arabic mb-1 sm:mb-2 line-clamp-1
+                          ${isLocked ? "text-gray-300" : "text-gray-700"}
+                        `}
+                        dir="rtl"
+                      >
+                        {hadith.arabicText}
+                      </p>
+
+                      {/* Translation Preview */}
+                      <p
+                        className={`
+                          text-xs sm:text-sm line-clamp-2 italic
+                          ${isLocked ? "text-gray-300" : "text-muted-foreground"}
+                        `}
+                      >
+                        "{hadith.translation}"
+                      </p>
+
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-3">
+                        <span
+                          className={`
+                            text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full
+                            ${isLocked ? "bg-gray-100 text-gray-400" : "bg-purple-100 text-purple-600"}
+                          `}
+                        >
+                          {hadith.category}
                         </span>
-                      )}
-                      {isLocked && (
-                        <span className="text-lg">🔒</span>
-                      )}
+                        <span
+                          className={`
+                            text-[10px] sm:text-xs flex items-center gap-1
+                            ${isLocked ? "text-gray-300" : "text-muted-foreground"}
+                          `}
+                        >
+                          <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          {hadith.narrator}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">{hadith.narrator}</span>
                   </div>
-
-                  <h3 className="font-bold text-lg mb-3">{hadith.title}</h3>
-                  
-                  {/* Arabic Text */}
-                  <div className="bg-slate-50 rounded-lg p-4 mb-3 text-center">
-                    <p className="arabic-text text-2xl text-slate-800">
-                      {hadith.arabicText}
-                    </p>
-                  </div>
-                  
-                  {/* Translation */}
-                  <p className="text-sm text-muted-foreground italic">
-                    "{hadith.translation}"
-                  </p>
-
-                  {!isLocked && (
-                    <div className="mt-4 flex gap-2">
-                      <Button variant="hadith" size="sm">
-                        🔊 Dengarkan
-                      </Button>
-                      {!hadith.completed && (
-                        <Button variant="hadithOutline" size="sm">
-                          Mulai Belajar
-                        </Button>
-                      )}
-                    </div>
-                  )}
                 </div>
               </Link>
             );
@@ -206,7 +234,20 @@ const HadithPage = () => {
             Hafal hadist untuk mendapatkan XP bonus!
           </p>
         </div>
-      </FeedWrapper>
+      </div>
+
+      {/* Continue Button */}
+      {completedCount < totalHadith && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+          <div className="max-w-4xl mx-auto">
+            <Link href={`/hadith/${HADITH_LIST[completedCount]?.id || 1}`}>
+              <Button variant="hadith" size="lg" className="w-full">
+                Lanjut Belajar →
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
