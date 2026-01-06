@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type {
   HijaiyahProgress,
   StoryProgress,
@@ -92,11 +91,10 @@ interface LessonProgressStore {
   setCurrentUserId: (userId: string | null) => void;
   loadFromSupabase: (userId: string) => Promise<void>;
   syncAllToSupabase: (userId: string) => Promise<void>;
+  clearProgress: () => void;
 }
 
-export const useLessonProgress = create<LessonProgressStore>()(
-  persist(
-    (set, get) => ({
+export const useLessonProgress = create<LessonProgressStore>()((set, get) => ({
       // Initial state
       isSyncing: false,
       currentUserId: null,
@@ -360,6 +358,16 @@ export const useLessonProgress = create<LessonProgressStore>()(
         }
       },
 
+      clearProgress: () => {
+        set({
+          currentUserId: null,
+          hijaiyahProgress: {},
+          storyProgress: {},
+          hadithProgress: {},
+          iqroProgress: {},
+        });
+      },
+
       syncAllToSupabase: async (userId: string) => {
         const state = get();
         set({ isSyncing: true });
@@ -391,15 +399,4 @@ export const useLessonProgress = create<LessonProgressStore>()(
           set({ isSyncing: false });
         }
       },
-    }),
-    {
-      name: "lesson-progress-storage",
-      partialize: (state) => ({
-        hijaiyahProgress: state.hijaiyahProgress,
-        storyProgress: state.storyProgress,
-        hadithProgress: state.hadithProgress,
-        iqroProgress: state.iqroProgress,
-      }),
-    }
-  )
-);
+}));

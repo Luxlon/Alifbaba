@@ -82,7 +82,7 @@ export default function DashboardPage() {
       if (profileError) throw profileError;
 
       // Type assertion for profile data
-      type ProfileRow = { id: string; name: string; email: string };
+      type ProfileRow = { id: string; username: string; email: string };
       const profiles = (studentProfiles || []) as ProfileRow[];
 
       if (profiles.length === 0) {
@@ -107,6 +107,7 @@ export default function DashboardPage() {
         xp: number;
         streak: number;
         last_login_date: string | null;
+        last_active_date:string | null;
       };
       const progress = (progressData || []) as ProgressRow[];
 

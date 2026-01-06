@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface Quest {
   id: string;
@@ -169,9 +168,7 @@ const DEFAULT_QUESTS: Quest[] = [
   },
 ];
 
-export const useQuests = create<QuestStore>()(
-  persist(
-    (set, get) => ({
+export const useQuests = create<QuestStore>()((set, get) => ({
       quests: DEFAULT_QUESTS,
       lastResetDate: null,
 
@@ -258,16 +255,11 @@ export const useQuests = create<QuestStore>()(
         return get().quests.filter((quest) => quest.completed && !quest.claimed);
       },
 
-      getTotalProgress: () => {
-        const quests = get().quests;
-        const daily = quests.filter((q) => q.type === "DAILY" && q.completed).length;
-        const weekly = quests.filter((q) => q.type === "WEEKLY" && q.completed).length;
-        const achievements = quests.filter((q) => q.type === "ACHIEVEMENT" && q.completed).length;
-        return { daily, weekly, achievements };
-      },
-    }),
-    {
-      name: "quests-storage",
-    }
-  )
-);
+  getTotalProgress: () => {
+    const quests = get().quests;
+    const daily = quests.filter((q) => q.type === "DAILY" && q.completed).length;
+    const weekly = quests.filter((q) => q.type === "WEEKLY" && q.completed).length;
+    const achievements = quests.filter((q) => q.type === "ACHIEVEMENT" && q.completed).length;
+    return { daily, weekly, achievements };
+  },
+}));

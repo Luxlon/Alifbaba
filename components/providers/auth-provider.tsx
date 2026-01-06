@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getSession, setSession, clearSession, type SessionData } from "@/lib/session";
 import type { Profile } from "@/types/supabase";
+import { useUserProgress } from "@/store/use-user-progress";
+import { useLessonProgress } from "@/store/use-lesson-progress";
 
 interface AuthContextType {
   session: SessionData | null;
@@ -29,6 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
+  
+  // Get store functions
+  const { loadFromSupabase: loadUserProgress, clearUserData, setOnlineStatus } = useUserProgress();
+  const { loadFromSupabase: loadLessonProgress, clearProgress, setCurrentUserId } = useLessonProgress();
 
   // Fetch profile from database
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -84,9 +90,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: profileData.email,
       };
 
+      // Clear old data first, then load new user's data from Supabase
+      clearUserData();
+      clearProgress();
+      
       setSession(sessionData);
       setSessionState(sessionData);
       setProfile(profileData);
+      
+      // Load user's data from database
+      setOnlineStatus(true);
+      setCurrentUserId(profileData.id);
+      
+      // Load progress data in background (don't await to not block login)
+      loadUserProgress(profileData.id).catch(console.error);
+      loadLessonProgress(profileData.id).catch(console.error);
 
       return { success: true };
     } catch (err) {
@@ -97,9 +115,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign out
   const signOut = () => {
+    // Clear all user data from stores
+    clearUserData();
+    clearProgress();
+    setCurrentUserId(null);
+    
+    // Clear session
     clearSession();
     setSessionState(null);
     setProfile(null);
+    
     window.location.replace("/");
   };
 
@@ -126,9 +151,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setSession(updatedSession);
               setSessionState(updatedSession);
             }
+            
+            // Load user's progress data from Supabase
+            setOnlineStatus(true);
+            setCurrentUserId(profileData.id);
+            loadUserProgress(profileData.id).catch(console.error);
+            loadLessonProgress(profileData.id).catch(console.error);
           } else {
             // Profile not found, clear session
             clearSession();
+            clearUserData();
+            clearProgress();
             setSessionState(null);
           }
         }
@@ -140,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
