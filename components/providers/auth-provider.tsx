@@ -2,118 +2,153 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import { getSession, setSession, clearSession, type SessionData } from "@/lib/session";
 import type { Profile } from "@/types/supabase";
 
 interface AuthContextType {
-  user: User | null;
+  session: SessionData | null;
   profile: Profile | null;
-  session: Session | null;
   isLoading: boolean;
-  signOut: () => Promise<void>;
+  signIn: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => void;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
-  profile: null,
   session: null,
+  profile: null,
   isLoading: true,
-  signOut: async () => {},
+  signIn: async () => ({ success: false, error: "Not initialized" }),
+  signOut: () => {},
   refreshProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSessionState] = useState<SessionData | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
 
-  // Fetch profile
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+  // Fetch profile from database
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-    if (error) {
-      console.error("Error fetching profile:", error);
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+
+      return data as Profile;
+    } catch (err) {
+      console.error("Exception fetching profile:", err);
       return null;
     }
-
-    return data;
   };
 
   // Refresh profile
   const refreshProfile = async () => {
-    if (user) {
-      const profileData = await fetchProfile(user.id);
+    if (session) {
+      const profileData = await fetchProfile(session.userId);
       setProfile(profileData);
     }
   };
 
-  // Sign out
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    window.location.href = "/";
+  // Sign in - check username and password from profiles table
+  const signIn = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("username", username.toLowerCase().trim())
+        .eq("password", password)
+        .eq("is_active", true)
+        .single();
+
+      if (error || !data) {
+        return { success: false, error: "Username atau password salah" };
+      }
+
+      const profileData = data as Profile;
+
+      // Create session
+      const sessionData: SessionData = {
+        userId: profileData.id,
+        username: profileData.username,
+        role: profileData.role,
+        email: profileData.email,
+      };
+
+      setSession(sessionData);
+      setSessionState(sessionData);
+      setProfile(profileData);
+
+      return { success: true };
+    } catch (err) {
+      console.error("Sign in error:", err);
+      return { success: false, error: "Terjadi kesalahan saat login" };
+    }
   };
 
+  // Sign out
+  const signOut = () => {
+    clearSession();
+    setSessionState(null);
+    setProfile(null);
+    window.location.replace("/");
+  };
+
+  // Initialize session on mount
   useEffect(() => {
-    // Get initial session
-    const initAuth = async () => {
+    const initSession = async () => {
       setIsLoading(true);
 
-      const {
-        data: { session: initialSession },
-      } = await supabase.auth.getSession();
+      try {
+        const existingSession = getSession();
 
-      if (initialSession?.user) {
-        setSession(initialSession);
-        setUser(initialSession.user);
-        const profileData = await fetchProfile(initialSession.user.id);
-        setProfile(profileData);
+        if (existingSession) {
+          setSessionState(existingSession);
+          // Fetch fresh profile data
+          const profileData = await fetchProfile(existingSession.userId);
+          if (profileData) {
+            setProfile(profileData);
+            // Update session if role changed
+            if (profileData.role !== existingSession.role) {
+              const updatedSession: SessionData = {
+                ...existingSession,
+                role: profileData.role,
+              };
+              setSession(updatedSession);
+              setSessionState(updatedSession);
+            }
+          } else {
+            // Profile not found, clear session
+            clearSession();
+            setSessionState(null);
+          }
+        }
+      } catch (error) {
+        console.error("Error initializing session:", error);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
-    initAuth();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-
-      if (currentSession?.user) {
-        const profileData = await fetchProfile(currentSession.user.id);
-        setProfile(profileData);
-      } else {
-        setProfile(null);
-      }
-
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    initSession();
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        profile,
         session,
+        profile,
         isLoading,
+        signIn,
         signOut,
         refreshProfile,
       }}

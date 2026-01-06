@@ -25,7 +25,7 @@ const LearnPage = () => {
   const [mounted, setMounted] = useState(false);
 
   // Get display name from auth profile or fallback to "Pelajar"
-  const displayName = profile?.name || "Pelajar";
+  const displayName = profile?.username || "Pelajar";
 
   // Prevent hydration mismatch by only rendering after client-side mount
   useEffect(() => {

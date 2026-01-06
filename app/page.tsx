@@ -1,36 +1,50 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 // Force dynamic rendering (skip static generation at build time)
 export const dynamic = "force-dynamic";
 
-type ProfileRow = {
-  role: string;
-};
+// Parse session from cookie
+function parseSessionFromCookie(cookieStore: { get: (name: string) => { value: string } | undefined }) {
+  try {
+    const sessionCookie = cookieStore.get("alifbaba_session");
+    if (!sessionCookie?.value) return null;
+    return JSON.parse(decodeURIComponent(sessionCookie.value));
+  } catch {
+    return null;
+  }
+}
 
 export default async function Home() {
-  // Check if user is already logged in
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Check if user is already logged in via cookie
+  const cookieStore = await cookies();
+  const session = parseSessionFromCookie(cookieStore);
 
-  // If logged in, check role and redirect
-  if (user) {
-    const { data: profile } = (await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()) as { data: ProfileRow | null };
+  // If logged in, redirect client-side based on role
+  // We'll let the client handle this since we can't use redirect() with cookies properly
+  const redirectUrl = session
+    ? session.role === "superadmin"
+      ? "/admin"
+      : session.role === "teacher"
+      ? "/dashboard"
+      : "/learn"
+    : null;
 
-    if (profile?.role === "teacher") {
-      redirect("/dashboard");
-    } else {
-      redirect("/learn");
-    }
+  if (redirectUrl) {
+    return (
+      <html>
+        <head>
+          <meta httpEquiv="refresh" content={`0;url=${redirectUrl}`} />
+        </head>
+        <body>
+          <div className="min-h-screen flex items-center justify-center">
+            <p>Redirecting...</p>
+          </div>
+        </body>
+      </html>
+    );
   }
 
   return (
@@ -48,7 +62,7 @@ export default async function Home() {
             </h1>
           </div>
           <Link href="/login">
-            <Button variant="primaryOutline" className="hidden sm:flex">
+            <Button variant="outline" className="hidden sm:flex">
               Masuk
             </Button>
           </Link>
@@ -79,7 +93,7 @@ export default async function Home() {
               <Link href="/register">
                 <Button
                   size="lg"
-                  variant="primaryOutline"
+                  variant="outline"
                   className="w-full sm:w-auto text-lg px-8"
                 >
                   Daftar Gratis
@@ -197,7 +211,7 @@ export default async function Home() {
             <Link href="/login">
               <Button
                 size="lg"
-                variant="primaryOutline"
+                variant="outline"
                 className="text-xl px-12 py-6"
               >
                 Sudah Punya Akun

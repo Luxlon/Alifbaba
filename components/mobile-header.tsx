@@ -37,7 +37,7 @@ export const MobileHeader = () => {
               <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
             </div>
             <span className="font-medium text-xs sm:text-sm max-w-[60px] truncate hidden xs:block">
-              {profile.name.split(" ")[0]}
+              {profile.username.split(" ")[0]}
             </span>
           </Link>
         )}

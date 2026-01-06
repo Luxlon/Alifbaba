@@ -1,40 +1,12 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { parseSessionFromCookie } from "@/lib/session";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Get session from cookie
+  const cookieHeader = request.headers.get("cookie") || "";
+  const session = parseSessionFromCookie(cookieHeader);
 
   // Protected routes - redirect to login if not authenticated
   const protectedPaths = [
@@ -55,26 +27,20 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   );
 
-  if (isProtectedPath && !user) {
+  // If not logged in and trying to access protected route, redirect to login
+  if (isProtectedPath && !session) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
-  // If user is logged in and tries to access login/register, redirect to appropriate page
-  if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
-    // Get user profile to check role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
+  // If logged in and tries to access login/register, redirect to appropriate page
+  if (session && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
     const url = request.nextUrl.clone();
-    if (profile?.role === "superadmin") {
+    if (session.role === "superadmin") {
       url.pathname = "/admin";
-    } else if (profile?.role === "teacher") {
+    } else if (session.role === "teacher") {
       url.pathname = "/dashboard";
     } else {
       url.pathname = "/learn";
@@ -83,34 +49,22 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Admin route is only for superadmin
-  if (request.nextUrl.pathname.startsWith("/admin") && user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "superadmin") {
+  if (request.nextUrl.pathname.startsWith("/admin") && session) {
+    if (session.role !== "superadmin") {
       const url = request.nextUrl.clone();
-      url.pathname = profile?.role === "teacher" ? "/dashboard" : "/learn";
+      url.pathname = session.role === "teacher" ? "/dashboard" : "/learn";
       return NextResponse.redirect(url);
     }
   }
 
   // Dashboard is only for teachers
-  if (request.nextUrl.pathname.startsWith("/dashboard") && user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "teacher") {
+  if (request.nextUrl.pathname.startsWith("/dashboard") && session) {
+    if (session.role !== "teacher") {
       const url = request.nextUrl.clone();
-      url.pathname = profile?.role === "superadmin" ? "/admin" : "/learn";
+      url.pathname = session.role === "superadmin" ? "/admin" : "/learn";
       return NextResponse.redirect(url);
     }
   }
 
-  return supabaseResponse;
+  return response;
 }

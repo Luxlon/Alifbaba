@@ -55,7 +55,7 @@ interface StudentData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const { session, profile, isLoading: authLoading, signOut } = useAuth();
   const [students, setStudents] = useState<StudentData[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,15 +68,15 @@ export default function DashboardPage() {
 
   // Fetch students data
   const fetchStudents = async () => {
-    if (!user) return;
+    if (!session) return;
 
     setIsLoading(true);
     try {
       // Get students linked to this teacher
       const { data: studentProfiles, error: profileError } = await supabase
         .from("profiles")
-        .select("id, name, email")
-        .eq("teacher_id", user.id)
+        .select("id, username, email")
+        .eq("teacher_id", session.userId)
         .eq("role", "student");
 
       if (profileError) throw profileError;
@@ -193,7 +193,7 @@ export default function DashboardPage() {
 
         return {
           student_id: student.id,
-          student_name: student.name,
+          student_name: student.username,
           student_email: student.email,
           total_xp: studentProgress?.xp || 0,
           current_streak: studentProgress?.streak || 0,
@@ -204,7 +204,7 @@ export default function DashboardPage() {
           hadith_completed: hadithCompleted,
           hadith_avg_score: Math.round(hadithAvgScore),
           iqro_completed: iqroCompleted,
-          last_active: studentProgress?.last_login_date || null,
+          last_active: studentProgress?.last_active_date || null,
         };
       });
 
@@ -219,10 +219,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (!authLoading && user && profile?.role === "teacher") {
+    if (!authLoading && session && profile?.role === "teacher") {
       fetchStudents();
     }
-  }, [authLoading, user, profile]);
+  }, [authLoading, session, profile]);
 
   // Filter and sort students
   useEffect(() => {
@@ -304,7 +304,7 @@ export default function DashboardPage() {
     // Date
     doc.setFontSize(11);
     doc.text(`Tanggal: ${new Date().toLocaleDateString("id-ID")}`, 14, 30);
-    doc.text(`Pengajar: ${profile?.name}`, 14, 36);
+    doc.text(`Pengajar: ${profile?.username}`, 14, 36);
     doc.text(`Jumlah Siswa: ${filteredStudents.length}`, 14, 42);
 
     // Table
@@ -352,7 +352,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Loading state
+  // Loading state - simple spinner
   if (authLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -361,8 +361,31 @@ export default function DashboardPage() {
     );
   }
 
-  // Not authorized
-  if (!user || profile?.role !== "teacher") {
+  // Profile not loaded - show error
+  if (!profile && session) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-slate-800 mb-2">
+            Gagal Memuat Profil
+          </h2>
+          <p className="text-slate-600 mb-4">
+            Terjadi masalah saat memuat profil Anda. Silakan coba lagi.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button onClick={() => signOut()}>Logout</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authorized - redirect
+  if (!session || profile?.role !== "teacher") {
     router.push("/learn");
     return null;
   }
@@ -401,7 +424,7 @@ export default function DashboardPage() {
             {/* User Menu */}
             <div className="flex items-center gap-4">
               <div className="hidden sm:block text-right">
-                <p className="font-medium text-neutral-800">{profile?.name}</p>
+                <p className="font-medium text-neutral-800">{profile?.username}</p>
                 <p className="text-xs text-neutral-500">Pengajar</p>
               </div>
               <Button
@@ -423,7 +446,7 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-neutral-800">
-            Assalamualaikum, {profile?.name?.split(" ")[0]}! 👋
+            Assalamualaikum, {profile?.username}! 👋
           </h2>
           <p className="text-neutral-600 mt-1">
             Pantau progress belajar siswa-siswamu di sini.
@@ -755,7 +778,7 @@ export default function DashboardPage() {
             </p>
             <div className="flex items-center gap-3">
               <code className="bg-white/20 px-4 py-2 rounded-lg font-mono text-lg">
-                {user?.id.substring(0, 8).toUpperCase()}
+                {session?.userId.substring(0, 8).toUpperCase()}
               </code>
               <Button
                 variant="ghost"
@@ -763,7 +786,7 @@ export default function DashboardPage() {
                 className="text-white hover:bg-white/20"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    user?.id.substring(0, 8).toUpperCase() || ""
+                    session?.userId.substring(0, 8).toUpperCase() || ""
                   );
                   toast.success("Kode berhasil disalin!");
                 }}

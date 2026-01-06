@@ -15,7 +15,7 @@ type Props = {
 
 export const Sidebar = ({ className }: Props) => {
   const router = useRouter();
-  const { user, profile, isLoading, signOut } = useAuth();
+  const { session, profile, isLoading, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,7 +68,7 @@ export const Sidebar = ({ className }: Props) => {
               <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
               <span className="text-sm text-neutral-500">Memuat...</span>
             </div>
-          ) : user && profile ? (
+          ) : session && profile ? (
             <div className="border-t pt-4 mt-2">
               {/* Profile Link */}
               <Link href="/account">
@@ -78,7 +78,7 @@ export const Sidebar = ({ className }: Props) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-neutral-800 truncate text-sm">
-                      {profile.name}
+                      {profile.username}
                     </p>
                     <p className="text-xs text-neutral-500 truncate">
                       {profile.role === "teacher" ? "Pengajar" : "Siswa"}

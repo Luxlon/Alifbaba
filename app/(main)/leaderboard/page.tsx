@@ -19,7 +19,7 @@ interface LeaderboardEntry {
 }
 
 const LeaderboardPage = () => {
-  const { user, profile } = useAuth();
+  const { session, profile } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<number>(0);
   const [currentUserXp, setCurrentUserXp] = useState<number>(0);
@@ -41,7 +41,7 @@ const LeaderboardPage = () => {
           streak,
           name,
           profiles!user_progress_user_id_fkey (
-            name
+            username
           )
         `
         )
@@ -52,11 +52,11 @@ const LeaderboardPage = () => {
 
       if (progressData) {
         const entries: LeaderboardEntry[] = progressData.map((item, index) => {
-          // Use profile name if available, fallback to user_progress name
-          const profileName = (item.profiles as { name: string } | null)?.name;
+          // Use profile username if available, fallback to user_progress name
+          const profileUsername = (item.profiles as { username: string } | null)?.username;
           return {
             userId: item.user_id,
-            name: profileName || item.name || "Pengguna",
+            name: profileUsername || item.name || "Pengguna",
             xp: item.xp || 0,
             streak: item.streak || 0,
             rank: index + 1,
@@ -66,8 +66,8 @@ const LeaderboardPage = () => {
         setLeaderboard(entries);
 
         // Find current user's rank
-        if (user) {
-          const userEntry = entries.find((e) => e.userId === user.id);
+        if (session) {
+          const userEntry = entries.find((e) => e.userId === session.userId);
           if (userEntry) {
             setCurrentUserRank(userEntry.rank);
             setCurrentUserXp(userEntry.xp);
@@ -77,7 +77,7 @@ const LeaderboardPage = () => {
             const { data: userProgress } = await supabase
               .from("user_progress")
               .select("xp, streak")
-              .eq("user_id", user.id)
+              .eq("user_id", session.userId)
               .single();
 
             if (userProgress) {
@@ -104,7 +104,7 @@ const LeaderboardPage = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [user]);
+  }, [session]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -198,7 +198,7 @@ const LeaderboardPage = () => {
         ) : (
           <div className="border-2 rounded-lg sm:rounded-xl overflow-hidden">
             {leaderboard.map((entry, index) => {
-              const isCurrentUser = user && entry.userId === user.id;
+              const isCurrentUser = session && entry.userId === session.userId;
               const medal =
                 index === 0
                   ? "🥇"

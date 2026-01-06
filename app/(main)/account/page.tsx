@@ -36,8 +36,8 @@ const AccountPage = () => {
   const { getTotalCompleted } = useLessonProgress();
   const { getTotalProgress } = useQuests();
 
-  // Use profile name from auth, fallback to "Pelajar"
-  const name = profile?.name || "Pelajar";
+  // Use profile username from auth, fallback to "Pelajar"
+  const name = profile?.username || "Pelajar";
   const email = profile?.email || "";
   const role = profile?.role || "student";
 
@@ -46,8 +46,8 @@ const AccountPage = () => {
 
   // Update edited name when profile changes
   useEffect(() => {
-    setEditedName(profile?.name || "Pelajar");
-  }, [profile?.name]);
+    setEditedName(profile?.username || "Pelajar");
+  }, [profile?.username]);
 
   const completed = getTotalCompleted();
   const questProgress = getTotalProgress();

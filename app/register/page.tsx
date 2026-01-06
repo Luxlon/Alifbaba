@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { setSession, type SessionData } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -14,45 +15,34 @@ import {
   User,
   ArrowLeft,
   BookOpen,
-  Mail,
 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Validate email
-  const validateEmail = (value: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  };
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error("Mohon isi semua field");
+    if (!username || !password || !confirmPassword) {
+      toast.error("Mohon isi username dan password");
       return;
     }
 
-    if (name.length < 2) {
-      toast.error("Nama minimal 2 karakter");
+    if (username.length < 3) {
+      toast.error("Username minimal 3 karakter");
       return;
     }
 
-    if (!validateEmail(email)) {
-      toast.error("Format email tidak valid");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("Password minimal 6 karakter");
+    if (password.length < 4) {
+      toast.error("Password minimal 4 karakter");
       return;
     }
 
@@ -66,45 +56,64 @@ export default function RegisterPage() {
     try {
       const supabase = createClient();
 
-      // Extract username from email
-      const username = email.split("@")[0].toLowerCase();
+      // Check if username already exists
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username.toLowerCase().trim())
+        .single();
 
-      // Create auth user with real email
-      const { data, error } = await supabase.auth.signUp({
-        email: email.toLowerCase().trim(),
-        password,
-        options: {
-          data: {
-            username: username,
-            name,
-            role: "student", // Always student from register page
-          },
-        },
-      });
-
-      if (error) {
-        console.error("Registration error:", error);
-        if (error.message.includes("already registered")) {
-          toast.error("Email sudah terdaftar. Gunakan email lain atau login.");
-        } else {
-          toast.error(error.message);
-        }
+      if (existingUser) {
+        toast.error("Username sudah digunakan. Pilih yang lain.");
         setIsLoading(false);
         return;
       }
 
-      if (data.user) {
-        // Check if email confirmation is needed
-        if (data.user.identities?.length === 0) {
-          toast.error("Email sudah terdaftar. Coba login.");
-          setIsLoading(false);
-          return;
-        }
+      // Generate new user ID
+      const newUserId = crypto.randomUUID();
 
-        toast.success(`Selamat datang di AlifBaBa, ${name}! 🎉`);
-        router.push("/learn");
-        router.refresh();
+      // Insert new profile
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: newUserId,
+        username: username.toLowerCase().trim(),
+        password: password,
+        email: email || null,
+        role: "student",
+        is_active: true,
+      });
+
+      if (profileError) {
+        console.error("Registration error:", profileError);
+        toast.error("Gagal membuat akun. Coba lagi.");
+        setIsLoading(false);
+        return;
       }
+
+      // Create user_progress entry
+      await supabase.from("user_progress").insert({
+        user_id: newUserId,
+        name: username.toLowerCase().trim(),
+        hearts: 5,
+        xp: 0,
+        points: 0,
+        streak: 0,
+      });
+
+      // Set session
+      const sessionData: SessionData = {
+        userId: newUserId,
+        username: username.toLowerCase().trim(),
+        role: "student",
+        email: email || null,
+      };
+      setSession(sessionData);
+
+      toast.success(`Selamat datang di AlifBaBa, ${username}! 🎉`);
+      
+      // Redirect to learn page
+      setTimeout(() => {
+        window.location.href = "/learn";
+      }, 100);
     } catch (err) {
       console.error("Registration error:", err);
       toast.error("Terjadi kesalahan. Coba lagi nanti.");
@@ -163,42 +172,42 @@ export default function RegisterPage() {
 
           {/* Register Form */}
           <form onSubmit={handleRegister} className="space-y-4">
-            {/* Name Field */}
+            {/* Username Field */}
             <div className="space-y-2">
               <label
-                htmlFor="name"
+                htmlFor="username"
                 className="block text-sm font-medium text-neutral-700"
               >
-                Nama Lengkap
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-neutral-400" />
                 </div>
                 <input
-                  id="name"
+                  id="username"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nama lengkap kamu"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username untuk login"
                   className="w-full pl-10 pr-4 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base"
                   disabled={isLoading}
-                  autoComplete="name"
+                  autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Email Field */}
+            {/* Email Field (Optional) */}
             <div className="space-y-2">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-neutral-700"
               >
-                Email
+                Email (Opsional)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-neutral-400" />
+                  <User className="h-5 w-5 text-neutral-400" />
                 </div>
                 <input
                   id="email"
@@ -230,7 +239,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Minimal 4 karakter"
                   className="w-full pl-10 pr-12 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base"
                   disabled={isLoading}
                   autoComplete="new-password"

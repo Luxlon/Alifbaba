@@ -93,7 +93,6 @@ type TabType = "users" | "teachers" | "students" | "progress";
 interface UserData {
   id: string;
   username: string;
-  name: string;
   email: string | null;
   role: string;
   teacher_id: string | null;
@@ -118,7 +117,7 @@ interface ProgressData {
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const { session, profile, isLoading: authLoading, signOut } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>("users");
   const [users, setUsers] = useState<UserData[]>([]);
@@ -169,14 +168,13 @@ export default function AdminPage() {
           .from("profiles")
           .select("*")
           .order("role")
-          .order("name");
+          .order("username");
 
         if (usersError) throw usersError;
 
         type UserRow = {
           id: string;
           username: string;
-          name: string;
           email: string | null;
           role: string;
           teacher_id: string | null;
@@ -185,10 +183,10 @@ export default function AdminPage() {
         };
         const typedUsers = (usersData || []) as UserRow[];
 
-        // Map teacher names
+        // Map teacher names (using username as display name)
         const usersWithTeacher = typedUsers.map((u) => {
           const teacher = typedUsers.find((t) => t.id === u.teacher_id);
-          return { ...u, teacher_name: teacher?.name || null };
+          return { ...u, teacher_name: teacher?.username || null };
         }) as UserData[];
 
         setUsers(usersWithTeacher);
@@ -236,7 +234,7 @@ export default function AdminPage() {
 
           return {
             ...p,
-            student_name: student?.name || "Unknown",
+            student_name: student?.username || "Unknown",
             hijaiyah_completed: hijaiyah.count || 0,
             stories_completed: stories.count || 0,
             hadith_completed: hadith.count || 0,
@@ -263,10 +261,10 @@ export default function AdminPage() {
 
   // Check authorization
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !session) {
       router.push("/login");
     }
-  }, [user, authLoading, router]);
+  }, [session, authLoading, router]);
 
   // Fetch data when profile is ready
   useEffect(() => {
@@ -277,65 +275,68 @@ export default function AdminPage() {
 
   // Create user
   const handleCreateUser = async () => {
-    if (!formData.email || !formData.name || !formData.password) {
-      toast.error("Email, nama, dan password wajib diisi");
+    if (!formData.username || !formData.password) {
+      toast.error("Username dan password wajib diisi");
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error("Password minimal 6 karakter");
+    if (formData.password.length < 4) {
+      toast.error("Password minimal 4 karakter");
       return;
     }
 
     setIsCreating(true);
 
     try {
-      const username = formData.email.split("@")[0].toLowerCase();
-      const { data: currentSession } = await supabase.auth.getSession();
+      // Check if username already exists
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", formData.username.toLowerCase().trim())
+        .single();
 
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email.toLowerCase().trim(),
+      if (existingUser) {
+        toast.error("Username sudah digunakan");
+        setIsCreating(false);
+        return;
+      }
+
+      // Generate UUID for new user
+      const newUserId = crypto.randomUUID();
+
+      // Insert new profile
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: newUserId,
+        username: formData.username.toLowerCase().trim(),
         password: formData.password,
-        options: {
-          data: {
-            username: username,
-            name: formData.name,
-            role: formData.role,
-          },
-        },
-      });
+        email: formData.email || null,
+        role: formData.role,
+        teacher_id: formData.role === "student" && formData.teacher_id ? formData.teacher_id : null,
+        is_active: formData.is_active,
+      } as any);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      if (data.user && formData.teacher_id && formData.role === "student") {
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        await (supabase as any)
-          .from("profiles")
-          .update({ teacher_id: formData.teacher_id })
-          .eq("id", data.user.id);
-        /* eslint-enable @typescript-eslint/no-explicit-any */
-      }
+      // Create user_progress entry
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await supabase.from("user_progress").insert({
+        user_id: newUserId,
+        name: formData.username,
+        hearts: 5,
+        xp: 0,
+        points: 0,
+        streak: 0,
+      } as any);
 
-      // Restore admin session
-      if (currentSession?.session) {
-        await supabase.auth.setSession({
-          access_token: currentSession.session.access_token,
-          refresh_token: currentSession.session.refresh_token,
-        });
-      }
-
-      toast.success(`User ${formData.name} berhasil dibuat!`);
+      toast.success(`User ${formData.username} berhasil dibuat!`);
       setShowCreateModal(false);
       resetForm();
       await fetchData();
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Gagal membuat user";
-      if (errorMessage.includes("already registered")) {
-        toast.error("Email sudah terdaftar");
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     } finally {
       setIsCreating(false);
     }
@@ -347,10 +348,16 @@ export default function AdminPage() {
     setIsUpdating(true);
 
     try {
-      const updateData: Record<string, unknown> = {
-        name: formData.name,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateData: any = {
+        email: formData.email || null,
         is_active: formData.is_active,
       };
+
+      // Update password if provided
+      if (formData.password) {
+        updateData.password = formData.password;
+      }
 
       if (formData.role === "student" && formData.teacher_id) {
         updateData.teacher_id = formData.teacher_id;
@@ -358,16 +365,15 @@ export default function AdminPage() {
         updateData.teacher_id = null;
       }
 
-      /* eslint-disable @typescript-eslint/no-explicit-any */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from("profiles")
         .update(updateData)
         .eq("id", selectedUser.id);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (error) throw error;
 
-      toast.success(`User ${formData.name} berhasil diperbarui!`);
+      toast.success(`User ${selectedUser.username} berhasil diperbarui!`);
       setShowEditModal(false);
       setSelectedUser(null);
       resetForm();
@@ -394,7 +400,7 @@ export default function AdminPage() {
 
       if (error) throw error;
 
-      toast.success(`User ${selectedUser.name} berhasil dihapus!`);
+      toast.success(`User ${selectedUser.username} berhasil dihapus!`);
       setShowDeleteModal(false);
       setSelectedUser(null);
       await fetchData();
@@ -423,9 +429,9 @@ export default function AdminPage() {
     setSelectedUser(user);
     setFormData({
       username: user.username,
-      name: user.name,
+      name: "", // Not used anymore since name = password
       email: user.email || "",
-      password: "",
+      password: "", // Don't show current password
       role: user.role as "student" | "teacher" | "superadmin",
       teacher_id: user.teacher_id || "",
       is_active: user.is_active,
@@ -501,7 +507,7 @@ export default function AdminPage() {
       const u = item as UserData;
       return [
         u.username,
-        u.name,
+        u.email || "-",
         u.role,
         u.teacher_name || "-",
         u.is_active ? "Aktif" : "Nonaktif",
@@ -525,14 +531,12 @@ export default function AdminPage() {
   // Filter data
   const filteredUsers = users.filter(
     (u) =>
-      u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredTeachers = teachers.filter(
     (t) =>
-      t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.username?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -540,7 +544,6 @@ export default function AdminPage() {
     .filter((u) => u.role === "student")
     .filter(
       (u) =>
-        u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.username?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -548,51 +551,42 @@ export default function AdminPage() {
     p.student_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Loading state
+  // Not logged in - redirect to login
+  if (!authLoading && !session) {
+    router.push("/login");
+    return null;
+  }
+
+  // Still loading auth - show simple spinner (no blocking verification)
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 gap-4">
-        <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
-          <Shield className="h-8 w-8 text-white" />
-        </div>
-        <div className="flex items-center gap-2 text-slate-600">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="font-medium">Memverifikasi akses...</span>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
       </div>
     );
   }
 
-  // Not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 gap-4">
-        <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
-          <AlertCircle className="h-8 w-8 text-red-600" />
-        </div>
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-slate-800 mb-2">
-            Silakan Login
-          </h2>
-          <p className="text-slate-600 mb-4">
-            Anda perlu login untuk mengakses halaman ini.
-          </p>
-          <Button onClick={() => router.push("/login")}>Login</Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authorized (wait for profile to load, show loading while waiting)
+  // Profile not loaded yet
   if (!profile) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 gap-4">
-        <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
-          <Shield className="h-8 w-8 text-white" />
+        <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center">
+          <AlertCircle className="h-8 w-8 text-amber-600" />
         </div>
-        <div className="flex items-center gap-2 text-slate-600">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="font-medium">Memuat profil...</span>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-slate-800 mb-2">
+            Gagal Memuat Profil
+          </h2>
+          <p className="text-slate-600 mb-4">
+            Terjadi masalah saat memuat profil Anda. Silakan coba lagi.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button onClick={() => signOut()}>Logout</Button>
+          </div>
         </div>
       </div>
     );
@@ -647,7 +641,7 @@ export default function AdminPage() {
                     Admin Panel
                   </h1>
                   <p className="text-xs text-slate-500">
-                    {profile?.name} • {profile?.email}
+                    {profile?.username} • {profile?.email}
                   </p>
                 </div>
               </div>
@@ -926,7 +920,7 @@ export default function AdminPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email (Opsional)</Label>
                 <Input
                   id="email"
                   type="email"
@@ -939,18 +933,6 @@ export default function AdminPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="Nama lengkap"
-                  disabled={isCreating}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -959,7 +941,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Minimal 4 karakter"
                   disabled={isCreating}
                 />
               </div>
@@ -980,7 +962,7 @@ export default function AdminPage() {
                       <SelectItem value="">Tidak ada</SelectItem>
                       {teachers.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
-                          {t.name}
+                          {t.username}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1031,18 +1013,22 @@ export default function AdminPage() {
                 <Input
                   id="edit-email"
                   value={formData.email}
-                  disabled
-                  className="bg-muted"
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  disabled={isUpdating}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Nama Lengkap</Label>
+                <Label htmlFor="edit-password">Password Baru (Kosongkan jika tidak diubah)</Label>
                 <Input
-                  id="edit-name"
-                  value={formData.name}
+                  id="edit-password"
+                  type="password"
+                  value={formData.password}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, password: e.target.value })
                   }
+                  placeholder="Password baru"
                   disabled={isUpdating}
                 />
               </div>
@@ -1063,7 +1049,7 @@ export default function AdminPage() {
                       <SelectItem value="">Tidak ada</SelectItem>
                       {teachers.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
-                          {t.name}
+                          {t.username}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1121,7 +1107,7 @@ export default function AdminPage() {
               </AlertDialogTitle>
               <AlertDialogDescription>
                 Apakah Anda yakin ingin menghapus{" "}
-                <strong>{selectedUser?.name}</strong>?
+                <strong>{selectedUser?.username}</strong>?
                 <br />
                 <span className="text-red-500 text-xs">
                   ⚠️ Semua data progress akan ikut terhapus.
@@ -1200,10 +1186,10 @@ function UsersTable({
                         : "bg-emerald-500"
                     }`}
                   >
-                    {u.name?.charAt(0).toUpperCase() || "?"}
+                    {u.username?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div>
-                    <p className="font-medium">{u.name}</p>
+                    <p className="font-medium">{u.username}</p>
                     <p className="text-xs text-muted-foreground">
                       {u.email || `@${u.username}`}
                     </p>

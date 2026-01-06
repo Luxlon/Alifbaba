@@ -3,88 +3,78 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, Lock, ArrowLeft, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, ArrowLeft, User } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/learn";
+  const { signIn, session, profile } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // If already logged in, redirect based on role
+  if (session && profile) {
+    if (profile.role === "superadmin") {
+      router.replace("/admin");
+    } else if (profile.role === "teacher") {
+      router.replace("/dashboard");
+    } else {
+      router.replace(redirectTo);
+    }
+    return null;
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Mohon isi email dan password");
+    if (!username || !password) {
+      toast.error("Mohon isi username dan password");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
+      const result = await signIn(username, password);
 
-      // Login with email directly
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.toLowerCase().trim(),
-        password,
-      });
-
-      if (error) {
-        console.error("Login error:", error);
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email atau password salah");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Email belum dikonfirmasi");
-        } else {
-          toast.error(error.message);
-        }
+      if (!result.success) {
+        toast.error(result.error || "Login gagal");
         setIsLoading(false);
         return;
       }
 
-      if (data.user) {
-        // Get user profile to determine redirect
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("role, name")
-          .eq("id", data.user.id)
-          .single();
+      toast.success(`Selamat datang, ${username}! 👋`);
 
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          toast.success("Login berhasil! 👋");
-          router.push(redirectTo);
-          router.refresh();
-          return;
-        }
-
-        const profile = profileData as { role: string; name: string } | null;
-        toast.success(
-          `Selamat datang kembali, ${profile?.name || "Pengguna"}! 👋`
-        );
-
-        // Redirect based on role
-        if (profile?.role === "superadmin") {
-          router.push("/admin");
-        } else if (profile?.role === "teacher") {
-          router.push("/dashboard");
-        } else {
-          router.push(redirectTo);
-        }
-        router.refresh();
+      // Wait a moment for session to be set then redirect based on role
+      // Need to get the profile from signIn result to determine role
+      const supabase = (await import("@/lib/supabase/client")).createClient();
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("username", username.toLowerCase().trim())
+        .single();
+      
+      const role = profileData?.role || "student";
+      let targetUrl = "/learn";
+      if (role === "superadmin") {
+        targetUrl = "/admin";
+      } else if (role === "teacher") {
+        targetUrl = "/dashboard";
       }
+
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 100);
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("Terjadi kesalahan. Coba lagi nanti.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -124,27 +114,27 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Field */}
+            {/* Username Field */}
             <div className="space-y-2">
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-sm font-medium text-neutral-700"
               >
-                Email
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-neutral-400" />
+                  <User className="h-5 w-5 text-neutral-400" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@gmail.com"
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Masukkan username"
                   className="w-full pl-10 pr-4 py-3 sm:py-3.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base"
                   disabled={isLoading}
-                  autoComplete="email"
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -211,16 +201,16 @@ export default function LoginPage() {
             </p>
             <div className="text-xs text-emerald-700 space-y-1">
               <p>
-                👑 Admin: <span className="font-mono">admin@gmail.com</span> /
-                admin123
+                👑 Admin: <span className="font-mono">admin</span> /
+                admin
               </p>
               <p>
-                👨‍🏫 Guru: <span className="font-mono">guru1@gmail.com</span> /
-                guru123
+                👨‍🏫 Guru: <span className="font-mono">guru1</span> /
+                guru1
               </p>
               <p>
-                👦 Siswa: <span className="font-mono">siswa1@gmail.com</span> /
-                siswa123
+                👦 Siswa: <span className="font-mono">siswa1</span> /
+                siswa1
               </p>
             </div>
           </div>

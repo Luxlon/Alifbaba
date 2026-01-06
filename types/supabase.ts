@@ -11,7 +11,7 @@ export interface Database {
         Row: {
           id: string;
           username: string;
-          name: string;
+          password: string;
           email: string | null;
           role: UserRole;
           avatar_url: string | null;
@@ -21,9 +21,9 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
-          id: string;
+          id?: string;
           username: string;
-          name: string;
+          password: string;
           email?: string | null;
           role?: UserRole;
           avatar_url?: string | null;
@@ -35,7 +35,7 @@ export interface Database {
         Update: {
           id?: string;
           username?: string;
-          name?: string;
+          password?: string;
           email?: string | null;
           role?: UserRole;
           avatar_url?: string | null;
@@ -48,40 +48,34 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          name: string | null;
-          image_url: string | null;
-          xp: number;
+          name: string;
           hearts: number;
-          max_hearts: number;
+          xp: number;
           points: number;
           streak: number;
-          last_login_date: string | null;
+          last_active_date: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          name?: string | null;
-          image_url?: string | null;
-          xp?: number;
+          name: string;
           hearts?: number;
-          max_hearts?: number;
+          xp?: number;
           points?: number;
           streak?: number;
-          last_login_date?: string | null;
+          last_active_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
-          name?: string | null;
-          image_url?: string | null;
-          xp?: number;
+          name?: string;
           hearts?: number;
-          max_hearts?: number;
+          xp?: number;
           points?: number;
           streak?: number;
-          last_login_date?: string | null;
+          last_active_date?: string | null;
           updated_at?: string;
         };
       };
@@ -94,8 +88,6 @@ export interface Database {
           completed: boolean;
           score: number;
           attempts: number;
-          harakat_mastered: string[];
-          last_attempt_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -107,8 +99,6 @@ export interface Database {
           completed?: boolean;
           score?: number;
           attempts?: number;
-          harakat_mastered?: string[];
-          last_attempt_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -116,8 +106,6 @@ export interface Database {
           completed?: boolean;
           score?: number;
           attempts?: number;
-          harakat_mastered?: string[];
-          last_attempt_date?: string | null;
           updated_at?: string;
         };
       };
@@ -130,8 +118,6 @@ export interface Database {
           completed: boolean;
           video_watched: boolean;
           quiz_score: number;
-          quiz_attempts: number;
-          last_attempt_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -143,8 +129,6 @@ export interface Database {
           completed?: boolean;
           video_watched?: boolean;
           quiz_score?: number;
-          quiz_attempts?: number;
-          last_attempt_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -152,8 +136,6 @@ export interface Database {
           completed?: boolean;
           video_watched?: boolean;
           quiz_score?: number;
-          quiz_attempts?: number;
-          last_attempt_date?: string | null;
           updated_at?: string;
         };
       };
@@ -166,9 +148,7 @@ export interface Database {
           completed: boolean;
           audio_played: boolean;
           quiz_score: number;
-          quiz_attempts: number;
           memorized: boolean;
-          last_attempt_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -180,9 +160,7 @@ export interface Database {
           completed?: boolean;
           audio_played?: boolean;
           quiz_score?: number;
-          quiz_attempts?: number;
           memorized?: boolean;
-          last_attempt_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -190,9 +168,7 @@ export interface Database {
           completed?: boolean;
           audio_played?: boolean;
           quiz_score?: number;
-          quiz_attempts?: number;
           memorized?: boolean;
-          last_attempt_date?: string | null;
           updated_at?: string;
         };
       };
@@ -204,7 +180,6 @@ export interface Database {
           current_page: number;
           total_pages: number;
           completed: boolean;
-          last_read_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -215,7 +190,6 @@ export interface Database {
           current_page?: number;
           total_pages: number;
           completed?: boolean;
-          last_read_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -223,7 +197,6 @@ export interface Database {
           current_page?: number;
           total_pages?: number;
           completed?: boolean;
-          last_read_date?: string | null;
           updated_at?: string;
         };
       };
@@ -236,7 +209,6 @@ export interface Database {
           target: number;
           completed: boolean;
           claimed: boolean;
-          completed_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -248,7 +220,6 @@ export interface Database {
           target: number;
           completed?: boolean;
           claimed?: boolean;
-          completed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -257,7 +228,6 @@ export interface Database {
           target?: number;
           completed?: boolean;
           claimed?: boolean;
-          completed_at?: string | null;
           updated_at?: string;
         };
       };
