@@ -1,8 +1,38 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+// Force dynamic rendering (skip static generation at build time)
+export const dynamic = "force-dynamic";
+
+type ProfileRow = {
+  role: string;
+};
+
+export default async function Home() {
+  // Check if user is already logged in
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // If logged in, check role and redirect
+  if (user) {
+    const { data: profile } = (await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()) as { data: ProfileRow | null };
+
+    if (profile?.role === "teacher") {
+      redirect("/dashboard");
+    } else {
+      redirect("/learn");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-amber-50">
       {/* Hero Section */}
@@ -17,9 +47,11 @@ export default function Home() {
               AlifBaBa
             </h1>
           </div>
-          {/* <Link href="/learn">
-            <Button variant="primary">Mulai Belajar</Button>
-          </Link> */}
+          <Link href="/login">
+            <Button variant="primaryOutline" className="hidden sm:flex">
+              Masuk
+            </Button>
+          </Link>
         </header>
 
         {/* Hero */}
@@ -30,23 +62,32 @@ export default function Home() {
               <span className="text-emerald-600">Menyenangkan</span> untuk Anak
             </h2>
             <p className="text-lg text-neutral-600 mb-8 max-w-lg">
-              Pelajari huruf hijaiyah, kisah para nabi, dan hadist pilihan dengan 
-              cara yang interaktif dan menyenangkan. Cocok untuk anak-anak!
+              Pelajari huruf hijaiyah, kisah para nabi, dan hadist pilihan
+              dengan cara yang interaktif dan menyenangkan. Cocok untuk
+              anak-anak!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link href="/learn">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto text-lg px-8">
-                  🚀 Mulai
+              <Link href="/login">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full sm:w-auto text-lg px-8"
+                >
+                  🚀 Mulai Belajar
                 </Button>
               </Link>
-              {/* <Link href="/hijaiyah">
-                <Button size="lg" variant="primaryOutline" className="w-full sm:w-auto text-lg px-8">
-                  Lihat Materi
+              <Link href="/register">
+                <Button
+                  size="lg"
+                  variant="primaryOutline"
+                  className="w-full sm:w-auto text-lg px-8"
+                >
+                  Daftar Gratis
                 </Button>
-              </Link> */}
+              </Link>
             </div>
           </div>
-          
+
           <div className="flex-1 flex justify-center">
             <div className="relative">
               <div className="w-[300px] h-[300px] lg:w-[400px] lg:h-[400px] bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
@@ -74,7 +115,8 @@ export default function Home() {
               28 Huruf Hijaiyah
             </h3>
             <p className="text-neutral-600">
-              Pelajari semua huruf hijaiyah dengan harakat lengkap (fathah, kasrah, dhammah, sukun, dan tanwin).
+              Pelajari semua huruf hijaiyah dengan harakat lengkap (fathah,
+              kasrah, dhammah, sukun, dan tanwin).
             </p>
           </div>
 
@@ -87,7 +129,8 @@ export default function Home() {
               Kisah Para Nabi
             </h3>
             <p className="text-neutral-600">
-              Tonton video kisah nabi-nabi dengan animasi menarik dan quiz interaktif untuk menguji pemahaman.
+              Tonton video kisah nabi-nabi dengan animasi menarik dan quiz
+              interaktif untuk menguji pemahaman.
             </p>
           </div>
 
@@ -100,7 +143,8 @@ export default function Home() {
               Hadist Pilihan
             </h3>
             <p className="text-neutral-600">
-              Pelajari hadist-hadist pendek yang mudah dihafal dengan teks Arab, terjemahan, dan audio.
+              Pelajari hadist-hadist pendek yang mudah dihafal dengan teks Arab,
+              terjemahan, dan audio.
             </p>
           </div>
         </div>
@@ -136,17 +180,30 @@ export default function Home() {
 
         {/* CTA */}
         <div className="text-center">
-          <h3 className="text-3xl font-bold mb-4">
-            Siap untuk Mulai Belajar?
-          </h3>
+          <h3 className="text-3xl font-bold mb-4">Siap untuk Mulai Belajar?</h3>
           <p className="text-neutral-600 mb-8 max-w-md mx-auto">
             Bergabung dengan ribuan anak yang sudah belajar dengan AlifBaBa!
           </p>
-          <Link href="/learn">
-            <Button size="lg" variant="secondary" className="text-xl px-12 py-6">
-              Mulai Belajar Sekarang 🚀
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/register">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="text-xl px-12 py-6"
+              >
+                Daftar Gratis 🚀
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                size="lg"
+                variant="primaryOutline"
+                className="text-xl px-12 py-6"
+              >
+                Sudah Punya Akun
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

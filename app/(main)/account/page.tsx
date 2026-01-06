@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
 import { useQuests } from "@/store/use-quests";
+import { useAuth } from "@/components/providers/auth-provider";
 import { formatXP, formatPoints } from "@/lib/progress";
 import { toast } from "sonner";
 import {
@@ -22,26 +23,31 @@ import {
   Edit2,
   Check,
   X,
+  Mail,
+  Shield,
+  GraduationCap,
 } from "lucide-react";
 
 const AccountPage = () => {
-  const {
-    name,
-    imageUrl,
-    xp,
-    points,
-    hearts,
-    maxHearts,
-    streak,
-    createdAt,
-    setUserData,
-  } = useUserProgress();
-  
+  const { profile, signOut } = useAuth();
+  const { xp, points, hearts, maxHearts, streak, createdAt, setUserData } =
+    useUserProgress();
+
   const { getTotalCompleted } = useLessonProgress();
   const { getTotalProgress } = useQuests();
 
+  // Use profile name from auth, fallback to "Pelajar"
+  const name = profile?.name || "Pelajar";
+  const email = profile?.email || "";
+  const role = profile?.role || "student";
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
+
+  // Update edited name when profile changes
+  useEffect(() => {
+    setEditedName(profile?.name || "Pelajar");
+  }, [profile?.name]);
 
   const completed = getTotalCompleted();
   const questProgress = getTotalProgress();
@@ -61,13 +67,17 @@ const AccountPage = () => {
   };
 
   const getXpForNextLevel = () => {
-    const levels = [0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 15000];
+    const levels = [
+      0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 15000,
+    ];
     const level = getLevel();
     return levels[level] || 15000;
   };
 
   const getXpForCurrentLevel = () => {
-    const levels = [0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 15000];
+    const levels = [
+      0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 15000,
+    ];
     const level = getLevel();
     return levels[level - 1] || 0;
   };
@@ -75,7 +85,8 @@ const AccountPage = () => {
   const level = getLevel();
   const xpForNext = getXpForNextLevel();
   const xpForCurrent = getXpForCurrentLevel();
-  const levelProgress = ((xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
+  const levelProgress =
+    ((xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
 
   const handleSaveName = () => {
     if (editedName.trim()) {
@@ -113,7 +124,9 @@ const AccountPage = () => {
         </div>
         <div>
           <Heart className="h-4 w-4 mx-auto text-red-300" />
-          <div className="font-bold text-xs">{hearts}/{maxHearts}</div>
+          <div className="font-bold text-xs">
+            {hearts}/{maxHearts}
+          </div>
         </div>
       </div>
 
@@ -148,7 +161,9 @@ const AccountPage = () => {
                 <Heart className="h-4 w-4 text-red-500" />
                 Nyawa
               </span>
-              <span className="font-bold">{hearts}/{maxHearts}</span>
+              <span className="font-bold">
+                {hearts}/{maxHearts}
+              </span>
             </div>
           </div>
         </div>
@@ -159,7 +174,11 @@ const AccountPage = () => {
             <Settings className="h-4 w-4 mr-2" />
             Pengaturan
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-red-500" disabled>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={() => signOut()}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Keluar
           </Button>
@@ -170,9 +189,31 @@ const AccountPage = () => {
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 text-white mb-4 sm:mb-6 lg:mb-8">
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
-            {/* Avatar */}
-            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-emerald-500" />
+            {/* Avatar with Role Indicator */}
+            <div className="relative">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-emerald-500">
+                  {name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              {/* Role Badge */}
+              <div
+                className={`absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center ${
+                  role === "superadmin"
+                    ? "bg-slate-700"
+                    : role === "teacher"
+                    ? "bg-amber-500"
+                    : "bg-emerald-600"
+                }`}
+              >
+                {role === "superadmin" ? (
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                ) : role === "teacher" ? (
+                  <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                ) : (
+                  <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                )}
+              </div>
             </div>
 
             {/* Info */}
@@ -187,29 +228,68 @@ const AccountPage = () => {
                     placeholder="Nama kamu"
                     autoFocus
                   />
-                  <Button size="icon" variant="ghost" onClick={handleSaveName} className="h-8 w-8">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleSaveName}
+                    className="h-8 w-8"
+                  >
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={handleCancelEdit} className="h-8 w-8">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleCancelEdit}
+                    className="h-8 w-8"
+                  >
                     <X className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">{name}</h1>
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
+                    {name}
+                  </h1>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0"
+                    className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 hidden"
                     onClick={() => setIsEditing(true)}
+                    disabled
                   >
                     <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               )}
 
-              <div className="text-xs sm:text-sm opacity-90">
-                <span>📅 Bergabung {daysSinceJoined} hari lalu</span>
+              {/* Email and Role */}
+              <div className="space-y-1">
+                {email && (
+                  <div className="flex items-center gap-1 text-xs sm:text-sm opacity-90">
+                    <Mail className="h-3 w-3" />
+                    <span className="truncate">{email}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
+                      role === "superadmin"
+                        ? "bg-slate-800/50 text-white"
+                        : role === "teacher"
+                        ? "bg-amber-400/50 text-white"
+                        : "bg-white/20 text-white"
+                    }`}
+                  >
+                    {role === "superadmin"
+                      ? "Admin"
+                      : role === "teacher"
+                      ? "Pengajar"
+                      : "Siswa"}
+                  </span>
+                  <span className="text-[10px] sm:text-xs opacity-75">
+                    📅 {daysSinceJoined} hari bergabung
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -226,9 +306,14 @@ const AccountPage = () => {
           <div className="mt-4 sm:mt-6">
             <div className="flex justify-between text-xs sm:text-sm mb-1 sm:mb-2">
               <span>Level {level}</span>
-              <span>{formatXP(xp)} / {formatXP(xpForNext)} XP</span>
+              <span>
+                {formatXP(xp)} / {formatXP(xpForNext)} XP
+              </span>
             </div>
-            <Progress value={levelProgress} className="h-2 sm:h-3 bg-white/20" />
+            <Progress
+              value={levelProgress}
+              className="h-2 sm:h-3 bg-white/20"
+            />
           </div>
         </div>
 
@@ -238,7 +323,7 @@ const AccountPage = () => {
             <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
             Progress Belajar
           </h2>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {/* Hijaiyah */}
             <div className="border-2 border-emerald-200 rounded-lg sm:rounded-xl p-3 sm:p-5 bg-emerald-50">
@@ -309,7 +394,9 @@ const AccountPage = () => {
                   : "border-gray-200 opacity-50"
               }`}
             >
-              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">🌟</span>
+              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">
+                🌟
+              </span>
               <h4 className="font-bold text-xs sm:text-sm">Pemula</h4>
               <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Selesaikan 1 pelajaran
@@ -324,7 +411,9 @@ const AccountPage = () => {
                   : "border-gray-200 opacity-50"
               }`}
             >
-              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">🔥</span>
+              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">
+                🔥
+              </span>
               <h4 className="font-bold text-xs sm:text-sm">Semangat!</h4>
               <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Streak 7 hari
@@ -339,7 +428,9 @@ const AccountPage = () => {
                   : "border-gray-200 opacity-50"
               }`}
             >
-              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">🏆</span>
+              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">
+                🏆
+              </span>
               <h4 className="font-bold text-xs sm:text-sm">Master</h4>
               <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Kuasai 28 huruf
@@ -356,7 +447,9 @@ const AccountPage = () => {
                   : "border-gray-200 opacity-50"
               }`}
             >
-              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">👑</span>
+              <span className="text-2xl sm:text-4xl mb-1 sm:mb-2 block">
+                👑
+              </span>
               <h4 className="font-bold text-xs sm:text-sm">Legend</h4>
               <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Selesaikan semua
@@ -367,26 +460,34 @@ const AccountPage = () => {
 
         {/* Quest Stats */}
         <section>
-          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">📊 Statistik Quest</h2>
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+            📊 Statistik Quest
+          </h2>
           <div className="border-2 rounded-lg sm:rounded-xl p-4 sm:p-6">
             <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-blue-500">
                   {questProgress.daily}
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Daily</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Daily
+                </p>
               </div>
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-orange-500">
                   {questProgress.weekly}
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Weekly</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Weekly
+                </p>
               </div>
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-amber-500">
                   {questProgress.achievements}
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Achieve</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Achieve
+                </p>
               </div>
             </div>
           </div>
@@ -394,11 +495,19 @@ const AccountPage = () => {
 
         {/* Mobile Actions */}
         <div className="lg:hidden mt-6 space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-sm" disabled>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-sm"
+            disabled
+          >
             <Settings className="h-4 w-4 mr-2" />
             Pengaturan
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-red-500 text-sm" disabled>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-500 text-sm"
+            disabled
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Keluar
           </Button>
