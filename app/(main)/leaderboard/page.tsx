@@ -31,7 +31,7 @@ const LeaderboardPage = () => {
     const supabase = createClient();
 
     try {
-      // Fetch top 50 users by XP from user_progress joined with profiles
+      // Fetch top 50 users by XP from user_progress joined with profiles (only students)
       const { data: progressData, error } = await supabase
         .from("user_progress")
         .select(
@@ -41,22 +41,28 @@ const LeaderboardPage = () => {
           streak,
           name,
           profiles!user_progress_user_id_fkey (
-            username
+            username,
+            role
           )
         `
         )
-        .order("xp", { ascending: false })
-        .limit(50);
+        .order("xp", { ascending: false });
 
       if (error) throw error;
 
       if (progressData) {
-        const entries: LeaderboardEntry[] = progressData.map((item, index) => {
+        // Filter only students and take top 50
+        const studentData = progressData.filter((item) => {
+          const profile = item.profiles as { username: string; role: string } | null;
+          return profile?.role === "student";
+        }).slice(0, 50);
+
+        const entries: LeaderboardEntry[] = studentData.map((item, index) => {
           // Use profile username if available, fallback to user_progress name
-          const profileUsername = (item.profiles as { username: string } | null)?.username;
+          const profileData = item.profiles as { username: string; role: string } | null;
           return {
             userId: item.user_id,
-            name: profileUsername || item.name || "Pengguna",
+            name: profileData?.username || item.name || "Pengguna",
             xp: item.xp || 0,
             streak: item.streak || 0,
             rank: index + 1,

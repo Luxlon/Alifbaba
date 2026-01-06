@@ -33,9 +33,12 @@ DROP TABLE IF EXISTS public.profiles CASCADE;
 -- =============================================
 
 -- 1. PROFILES
+-- Note: Using standalone auth (not Supabase Auth) for simplicity
+-- Password stored directly in profiles table (suitable for learning apps)
 CREATE TABLE public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
     name TEXT,
     email TEXT UNIQUE,
     role TEXT NOT NULL DEFAULT 'student' CHECK (

@@ -1,21 +1,34 @@
 "use client";
 
-import { FeedWrapper } from "@/components/feed-wrapper";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { HIJAIYAH_LETTERS } from "@/constants";
 import { useLessonProgress } from "@/store/use-lesson-progress";
-import { Lock, CheckCircle2, Circle } from "lucide-react";
+import { useUserProgress } from "@/store/use-user-progress";
+import { Lock, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const HijaiyahPage = () => {
-  const { getHijaiyahProgress, isHijaiyahCompleted } = useLessonProgress();
+  const { getHijaiyahProgress, isHijaiyahCompleted, isInitialized: lessonInitialized } = useLessonProgress();
+  const { isInitialized: userInitialized } = useUserProgress();
 
-  // Calculate overall progress
+  // Calculate overall progress from actual data
   const completedCount = HIJAIYAH_LETTERS.filter((letter) =>
     isHijaiyahCompleted(letter.name)
   ).length;
-  const overallProgress = Math.round((completedCount / HIJAIYAH_LETTERS.length) * 100);
+  const totalLetters = HIJAIYAH_LETTERS.length;
+  const overallProgress = Math.round((completedCount / totalLetters) * 100);
+
+  // Show loading state while data is being fetched
+  if (!lessonInitialized || !userInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <p className="text-muted-foreground">Memuat progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-3 sm:px-4 md:px-6 pb-16 sm:pb-20">
@@ -32,7 +45,7 @@ const HijaiyahPage = () => {
       <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 md:mb-8">
         <div className="flex items-center justify-between mb-2 sm:mb-4">
           <div>
-            <div className="text-2xl sm:text-3xl font-bold">{completedCount}/28</div>
+            <div className="text-2xl sm:text-3xl font-bold">{completedCount}/{totalLetters}</div>
             <div className="text-xs sm:text-sm opacity-90">Huruf dikuasai</div>
           </div>
           <div className="text-3xl sm:text-4xl md:text-5xl">📖</div>
@@ -44,9 +57,9 @@ const HijaiyahPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="font-bold text-sm sm:text-base text-emerald-700">Progress Kamu</p>
-            <p className="text-xs sm:text-sm text-emerald-600">8 dari 28 huruf selesai</p>
+            <p className="text-xs sm:text-sm text-emerald-600">{completedCount} dari {totalLetters} huruf selesai</p>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-emerald-600">28%</div>
+          <div className="text-2xl sm:text-3xl font-bold text-emerald-600">{overallProgress}%</div>
         </div>
       </div>
 

@@ -15,8 +15,11 @@ import { Heart, Zap, Shield, Sparkles, ShoppingCart, Check } from "lucide-react"
 const ShopPage = () => {
   const { points, hearts, maxHearts, addHearts, spendPoints } = useUserProgress();
   const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
-  const handlePurchase = (item: typeof MOCK_SHOP_ITEMS[0]) => {
+  const handlePurchase = async (item: typeof MOCK_SHOP_ITEMS[0]) => {
+    if (isPurchasing) return;
+    
     // Check if user has enough points
     if (points < item.price) {
       toast.error("Poin tidak cukup!", {
@@ -43,30 +46,39 @@ const ShopPage = () => {
       return;
     }
 
-    // Purchase the item
-    const success = spendPoints(item.price);
+    setIsPurchasing(true);
     
-    if (success) {
-      // Apply item effect
-      if (item.type === "HEARTS_REFILL" && item.value) {
-        addHearts(item.value);
-        toast.success("Berhasil! ❤️", {
-          description: `Nyawa berhasil diisi ulang! +${item.value} nyawa`,
-        });
-      } else if (item.type === "DOUBLE_XP") {
-        toast.success("Berhasil! ⚡", {
-          description: `Boost XP 2x aktif selama ${item.duration} menit!`,
-        });
-      } else if (item.type === "FREEZE_STREAK") {
-        toast.success("Berhasil! 🛡️", {
-          description: "Streak kamu terlindungi selama 1 hari!",
-        });
-      } else if (item.type === "COSMETIC") {
-        setPurchasedItems([...purchasedItems, item.id]);
-        toast.success("Berhasil! 🎭", {
-          description: `${item.name} berhasil dibeli!`,
-        });
+    try {
+      // Purchase the item
+      const success = await spendPoints(item.price);
+      
+      if (success) {
+        // Apply item effect
+        if (item.type === "HEARTS_REFILL" && item.value) {
+          await addHearts(item.value);
+          toast.success("Berhasil! ❤️", {
+            description: `Nyawa berhasil diisi ulang! +${item.value} nyawa`,
+          });
+        } else if (item.type === "DOUBLE_XP") {
+          toast.success("Berhasil! ⚡", {
+            description: `Boost XP 2x aktif selama ${item.duration} menit!`,
+          });
+        } else if (item.type === "FREEZE_STREAK") {
+          toast.success("Berhasil! 🛡️", {
+            description: "Streak kamu terlindungi selama 1 hari!",
+          });
+        } else if (item.type === "COSMETIC") {
+          setPurchasedItems([...purchasedItems, item.id]);
+          toast.success("Berhasil! 🎭", {
+            description: `${item.name} berhasil dibeli!`,
+          });
+        }
       }
+    } catch (error) {
+      console.error("Purchase error:", error);
+      toast.error("Terjadi kesalahan saat membeli");
+    } finally {
+      setIsPurchasing(false);
     }
   };
 

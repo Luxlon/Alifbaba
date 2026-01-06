@@ -1,19 +1,18 @@
 -- =============================================
 -- ALIFBABA - INSERT DUMMY DATA
 -- =============================================
--- Jalankan SETELAH membuat users di Auth Dashboard
+-- Jalankan SETELAH schema setup (1-schema.sql)
 -- =============================================
 
--- Update roles for admin and teacher
-UPDATE public.profiles
-SET role = 'superadmin'
-WHERE
-    email = 'admin@gmail.com';
-
-UPDATE public.profiles
-SET role = 'teacher'
-WHERE
-    email = 'guru1@gmail.com';
+-- Insert dummy profiles (standalone auth - no Supabase Auth needed)
+INSERT INTO public.profiles (id, username, password, email, role, is_active)
+VALUES
+    (gen_random_uuid(), 'admin', 'admin123', 'admin@gmail.com', 'superadmin', true),
+    (gen_random_uuid(), 'guru1', 'guru123', 'guru1@gmail.com', 'teacher', true),
+    (gen_random_uuid(), 'siswa1', 'siswa123', 'siswa1@gmail.com', 'student', true),
+    (gen_random_uuid(), 'siswa2', 'siswa123', 'siswa2@gmail.com', 'student', true),
+    (gen_random_uuid(), 'siswa3', 'siswa123', 'siswa3@gmail.com', 'student', true)
+ON CONFLICT (username) DO NOTHING;
 
 -- Get teacher ID and assign students
 DO $$
@@ -29,45 +28,26 @@ BEGIN
     END IF;
 END $$;
 
--- Update user_progress with sample XP
-UPDATE public.user_progress
-SET
-    xp = 250,
-    points = 150,
-    streak = 7
-WHERE
-    user_id = (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            email = 'siswa1@gmail.com'
-    );
+-- Insert user_progress for each profile
+INSERT INTO public.user_progress (user_id, name, hearts, xp, points, streak)
+SELECT id, username, 5, 250, 150, 7 FROM public.profiles WHERE email = 'siswa1@gmail.com'
+ON CONFLICT (user_id) DO UPDATE SET xp = 250, points = 150, streak = 7;
 
-UPDATE public.user_progress
-SET
-    xp = 180,
-    points = 120,
-    streak = 5
-WHERE
-    user_id = (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            email = 'siswa2@gmail.com'
-    );
+INSERT INTO public.user_progress (user_id, name, hearts, xp, points, streak)
+SELECT id, username, 5, 180, 120, 5 FROM public.profiles WHERE email = 'siswa2@gmail.com'
+ON CONFLICT (user_id) DO UPDATE SET xp = 180, points = 120, streak = 5;
 
-UPDATE public.user_progress
-SET
-    xp = 320,
-    points = 200,
-    streak = 10
-WHERE
-    user_id = (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            email = 'siswa3@gmail.com'
-    );
+INSERT INTO public.user_progress (user_id, name, hearts, xp, points, streak)
+SELECT id, username, 5, 320, 200, 10 FROM public.profiles WHERE email = 'siswa3@gmail.com'
+ON CONFLICT (user_id) DO UPDATE SET xp = 320, points = 200, streak = 10;
+
+INSERT INTO public.user_progress (user_id, name, hearts, xp, points, streak)
+SELECT id, username, 5, 0, 0, 0 FROM public.profiles WHERE email = 'admin@gmail.com'
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO public.user_progress (user_id, name, hearts, xp, points, streak)
+SELECT id, username, 5, 50, 30, 2 FROM public.profiles WHERE email = 'guru1@gmail.com'
+ON CONFLICT (user_id) DO NOTHING;
 
 -- Insert hijaiyah progress
 INSERT INTO

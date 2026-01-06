@@ -7,18 +7,31 @@ import { Progress } from "@/components/ui/progress";
 import { PROPHET_STORIES } from "@/constants";
 import { useLessonProgress } from "@/store/use-lesson-progress";
 import { useUserProgress } from "@/store/use-user-progress";
-import { Lock, CheckCircle2, PlayCircle } from "lucide-react";
+import { Lock, CheckCircle2, PlayCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const StoriesPage = () => {
-  const { getStoryProgress, isStoryCompleted } = useLessonProgress();
-  const { xp, hearts } = useUserProgress();
+  const { getStoryProgress, isStoryCompleted, isInitialized: lessonInitialized } = useLessonProgress();
+  const { xp, hearts, isInitialized: userInitialized } = useUserProgress();
 
-  // Calculate overall progress
+  // Calculate overall progress from actual data
   const completedCount = PROPHET_STORIES.filter((story) =>
-    isStoryCompleted(String(story.id))
+    isStoryCompleted(story.id)
   ).length;
-  const progressPercent = Math.round((completedCount / PROPHET_STORIES.length) * 100);
+  const totalStories = PROPHET_STORIES.length;
+  const progressPercent = Math.round((completedCount / totalStories) * 100);
+
+  // Show loading state while data is being fetched
+  if (!lessonInitialized || !userInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          <p className="text-muted-foreground">Memuat progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row-reverse gap-4 lg:gap-[48px] px-3 sm:px-4 md:px-6">
@@ -41,7 +54,7 @@ const StoriesPage = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Video ditonton</span>
-                <span>{completedCount}/{PROPHET_STORIES.length}</span>
+                <span>{completedCount}/{totalStories}</span>
               </div>
               <Progress value={progressPercent} className="h-2" />
             </div>
@@ -70,7 +83,7 @@ const StoriesPage = () => {
         <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 md:mb-8">
           <div className="flex items-center justify-between mb-2 sm:mb-4">
             <div>
-              <div className="text-2xl sm:text-3xl font-bold">{completedCount}/{PROPHET_STORIES.length}</div>
+              <div className="text-2xl sm:text-3xl font-bold">{completedCount}/{totalStories}</div>
               <div className="text-xs sm:text-sm opacity-90">Kisah selesai</div>
             </div>
             <div className="text-3xl sm:text-4xl md:text-5xl">📺</div>
@@ -81,9 +94,9 @@ const StoriesPage = () => {
         {/* Stories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {PROPHET_STORIES.map((story, index) => {
-            const progress = getStoryProgress(String(story.id));
-            const isCompleted = isStoryCompleted(String(story.id));
-            const isUnlocked = index === 0 || isStoryCompleted(String(PROPHET_STORIES[index - 1].id));
+            const progress = getStoryProgress(story.id);
+            const isCompleted = isStoryCompleted(story.id);
+            const isUnlocked = index === 0 || isStoryCompleted(PROPHET_STORIES[index - 1].id);
             const isLocked = !isUnlocked;
             
             return (

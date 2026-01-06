@@ -72,15 +72,17 @@ export default function RegisterPage() {
       // Generate new user ID
       const newUserId = crypto.randomUUID();
 
-      // Insert new profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: newUserId,
-        username: username.toLowerCase().trim(),
-        password: password,
-        email: email || null,
-        role: "student",
-        is_active: true,
-      });
+      // Insert new profile (password stored directly, suitable for learning app)
+      const { error: profileError } = await (supabase
+        .from("profiles") as ReturnType<typeof supabase.from>)
+        .insert({
+          id: newUserId,
+          username: username.toLowerCase().trim(),
+          password: password,
+          email: email || null,
+          role: "student",
+          is_active: true,
+        });
 
       if (profileError) {
         console.error("Registration error:", profileError);
@@ -90,14 +92,21 @@ export default function RegisterPage() {
       }
 
       // Create user_progress entry
-      await supabase.from("user_progress").insert({
-        user_id: newUserId,
-        name: username.toLowerCase().trim(),
-        hearts: 5,
-        xp: 0,
-        points: 0,
-        streak: 0,
-      });
+      const { error: progressError } = await (supabase
+        .from("user_progress") as ReturnType<typeof supabase.from>)
+        .insert({
+          user_id: newUserId,
+          name: username.toLowerCase().trim(),
+          hearts: 5,
+          xp: 0,
+          points: 0,
+          streak: 0,
+        });
+
+      if (progressError) {
+        console.error("Progress error:", progressError);
+        // Continue anyway - profile was created
+      }
 
       // Set session
       const sessionData: SessionData = {

@@ -183,12 +183,13 @@ export const hijaiyahProgressService = {
     const rows = (data || []) as QueryResult[];
     
     rows.forEach((item) => {
-      const letterId = String(item.letter_id);
-      result[letterId] = {
+      // Use letter_name as key for easier lookup by name
+      const letterName = String(item.letter_name);
+      result[letterName] = {
         id: item.id,
         userId: item.user_id,
-        letterId: letterId,
-        letterName: item.letter_name,
+        letterId: String(item.letter_id),
+        letterName: letterName,
         completed: item.completed,
         score: item.score,
         attempts: item.attempts,
@@ -203,7 +204,7 @@ export const hijaiyahProgressService = {
   async upsert(userId: string, progress: HijaiyahProgress): Promise<boolean> {
     const payload = {
       user_id: userId,
-      letter_id: parseInt(progress.letterId) || 0,
+      letter_id: progress.letterName, // Use letterName as letter_id (TEXT in database)
       letter_name: progress.letterName,
       completed: progress.completed,
       score: progress.score,
@@ -264,7 +265,7 @@ export const storyProgressService = {
   async upsert(userId: string, progress: StoryProgress): Promise<boolean> {
     const payload = {
       user_id: userId,
-      story_id: parseInt(progress.storyId) || 0,
+      story_id: progress.storyId, // TEXT in database
       story_title: progress.storyTitle,
       completed: progress.completed,
       video_watched: progress.videoWatched,
@@ -326,7 +327,7 @@ export const hadithProgressService = {
   async upsert(userId: string, progress: HadithProgress): Promise<boolean> {
     const payload = {
       user_id: userId,
-      hadith_id: parseInt(progress.hadithId) || 0,
+      hadith_id: progress.hadithId, // TEXT in database
       hadith_title: progress.hadithTitle,
       completed: progress.completed,
       audio_played: progress.audioPlayed,

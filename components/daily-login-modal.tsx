@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUserProgress } from "@/store/use-user-progress";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Star, Gift, Flame } from "lucide-react";
 import Confetti from "react-confetti";
 
@@ -27,10 +28,13 @@ export const DailyLoginModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [isClaiming, setIsClaiming] = useState(false);
   
+  const { session } = useAuth();
   const { 
     streak, 
     lastLoginDate, 
+    isInitialized,
     addXp, 
     addPoints, 
     updateStreak 
@@ -43,13 +47,16 @@ export const DailyLoginModal = () => {
       height: window.innerHeight,
     });
 
+    // Only check if user is logged in and progress is initialized
+    if (!session || !isInitialized) return;
+
     // Check if user should see daily reward
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split("T")[0];
     if (lastLoginDate !== today) {
       // New day - show reward modal
       setTimeout(() => setIsOpen(true), 500);
     }
-  }, [lastLoginDate]);
+  }, [lastLoginDate, session, isInitialized]);
 
   const getCurrentDayReward = () => {
     // Cycle through 7 days
@@ -57,23 +64,36 @@ export const DailyLoginModal = () => {
     return DAILY_REWARDS[dayIndex - 1] || DAILY_REWARDS[0];
   };
 
-  const handleClaimReward = () => {
-    const reward = getCurrentDayReward();
+  const handleClaimReward = async () => {
+    if (isClaiming) return;
     
-    // Update streak and add rewards
-    updateStreak();
-    addXp(reward.xp);
-    addPoints(reward.points);
+    setIsClaiming(true);
     
-    // Show confetti
-    setShowConfetti(true);
-    
-    // Close modal after animation
-    setTimeout(() => {
-      setShowConfetti(false);
-      setIsOpen(false);
-    }, 2000);
+    try {
+      const reward = getCurrentDayReward();
+      
+      // Update streak and add rewards
+      await updateStreak();
+      await addXp(reward.xp);
+      await addPoints(reward.points);
+      
+      // Show confetti
+      setShowConfetti(true);
+      
+      // Close modal after animation
+      setTimeout(() => {
+        setShowConfetti(false);
+        setIsOpen(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error claiming reward:", error);
+    } finally {
+      setIsClaiming(false);
+    }
   };
+
+  // Don't render if not logged in
+  if (!session) return null;
 
   const reward = getCurrentDayReward();
   const currentDay = (streak % 7) + 1;
@@ -151,9 +171,10 @@ export const DailyLoginModal = () => {
               size="lg"
               className="w-full text-lg h-14"
               onClick={handleClaimReward}
+              disabled={isClaiming}
             >
               <Gift className="h-5 w-5 mr-2" />
-              Klaim Hadiah
+              {isClaiming ? "Mengklaim..." : "Klaim Hadiah"}
             </Button>
           </div>
         </DialogContent>

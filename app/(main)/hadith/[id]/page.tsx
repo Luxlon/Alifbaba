@@ -52,7 +52,7 @@ const HadithDetailPage = () => {
   const hadithId = params?.id as string;
 
   // Find the hadith
-  const hadith = HADITH_LIST.find((h) => String(h.id) === hadithId);
+  const hadith = HADITH_LIST.find((h) => h.id === hadithId);
 
   // State
   const [phase, setPhase] = useState<Phase>("intro");
@@ -151,7 +151,7 @@ const HadithDetailPage = () => {
     setSelectedAnswer(answer);
   };
 
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = async () => {
     if (selectedAnswer === null) return;
 
     const correct = selectedAnswer === currentQuestion.correctAnswer;
@@ -159,13 +159,13 @@ const HadithDetailPage = () => {
 
     if (correct) {
       setCorrectAnswersCount((prev) => prev + 1);
-      addXp(10);
+      await addXp(10);
       toast.success("+10 XP", {
         description: "Jawaban benar!",
       });
     } else {
       if (hearts > 0) {
-        removeHearts(1);
+        await removeHearts(1);
         toast.error("Jawaban kurang tepat", {
           description: "Kamu kehilangan 1 nyawa.",
         });
@@ -191,10 +191,10 @@ const HadithDetailPage = () => {
   };
 
   // Handle lesson completion
-  const handleLessonComplete = (score: number) => {
-    completeHadithLesson(hadithId, hadith.title, score, true, false);
-    addPoints(20);
-    addXp(40);
+  const handleLessonComplete = async (score: number) => {
+    await completeHadithLesson(hadithId, hadith.title, score, true, false);
+    await addPoints(20);
+    await addXp(40);
     setPhase("result");
   };
 

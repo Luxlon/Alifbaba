@@ -20,7 +20,7 @@ const StoryDetailPage = () => {
   const storyId = params?.id as string;
 
   // Find the story
-  const story = PROPHET_STORIES.find((s) => String(s.id) === storyId);
+  const story = PROPHET_STORIES.find((s) => s.id === storyId);
 
   // State
   const [phase, setPhase] = useState<Phase>("video");
@@ -77,7 +77,7 @@ const StoryDetailPage = () => {
   };
 
   // Handle check answer
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = async () => {
     if (selectedAnswer === null) return;
 
     setIsChecking(true);
@@ -87,13 +87,13 @@ const StoryDetailPage = () => {
 
     if (correct) {
       setCorrectAnswersCount((prev) => prev + 1);
-      addXp(10);
+      await addXp(10);
       toast.success("+10 XP", {
         description: "Jawaban benar!",
       });
     } else {
       if (hearts > 0) {
-        removeHearts(1);
+        await removeHearts(1);
         toast.error("Jawaban kurang tepat", {
           description: "Kamu kehilangan 1 nyawa.",
         });
@@ -120,10 +120,10 @@ const StoryDetailPage = () => {
   };
 
   // Handle lesson completion
-  const handleLessonComplete = (score: number) => {
-    completeStoryLesson(storyId, story.title, score, true);
-    addPoints(25);
-    addXp(50);
+  const handleLessonComplete = async (score: number) => {
+    await completeStoryLesson(storyId, story.title, score, true);
+    await addPoints(25);
+    await addXp(50);
     setPhase("result");
   };
 

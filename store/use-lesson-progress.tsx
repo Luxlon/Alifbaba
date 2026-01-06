@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type {
   HijaiyahProgress,
   StoryProgress,
@@ -14,8 +13,9 @@ import {
 } from "@/lib/supabase/progress-service";
 
 interface LessonProgressStore {
-  // Sync state
-  isSyncing: boolean;
+  // Loading state
+  isLoading: boolean;
+  isInitialized: boolean;
   currentUserId: string | null;
 
   // Hijaiyah Progress
@@ -36,7 +36,7 @@ interface LessonProgressStore {
     letterName: string,
     score: number,
     harakatMastered: string[]
-  ) => void;
+  ) => Promise<void>;
 
   getHijaiyahProgress: (letterId: string) => HijaiyahProgress | undefined;
 
@@ -48,7 +48,7 @@ interface LessonProgressStore {
     storyTitle: string,
     quizScore: number,
     videoWatched: boolean
-  ) => void;
+  ) => Promise<void>;
 
   getStoryProgress: (storyId: string) => StoryProgress | undefined;
 
@@ -61,7 +61,7 @@ interface LessonProgressStore {
     quizScore: number,
     audioPlayed: boolean,
     memorized: boolean
-  ) => void;
+  ) => Promise<void>;
 
   getHadithProgress: (hadithId: string) => HadithProgress | undefined;
 
@@ -73,7 +73,7 @@ interface LessonProgressStore {
     currentPage: number,
     totalPages: number,
     completed: boolean
-  ) => void;
+  ) => Promise<void>;
 
   getIqroProgress: (iqroId: number) => IqroProgress | undefined;
 
@@ -88,318 +88,282 @@ interface LessonProgressStore {
     total: number;
   };
 
-  // Supabase sync
+  // Supabase operations
   setCurrentUserId: (userId: string | null) => void;
   loadFromSupabase: (userId: string) => Promise<void>;
-  syncAllToSupabase: (userId: string) => Promise<void>;
+  refreshFromSupabase: () => Promise<void>;
+  resetStore: () => void;
 }
 
-export const useLessonProgress = create<LessonProgressStore>()(
-  persist(
-    (set, get) => ({
-      // Initial state
-      isSyncing: false,
-      currentUserId: null,
-      hijaiyahProgress: {},
-      storyProgress: {},
-      hadithProgress: {},
-      iqroProgress: {},
+// Initial state
+const initialState = {
+  isLoading: false,
+  isInitialized: false,
+  currentUserId: null as string | null,
+  hijaiyahProgress: {} as Record<string, HijaiyahProgress>,
+  storyProgress: {} as Record<string, StoryProgress>,
+  hadithProgress: {} as Record<string, HadithProgress>,
+  iqroProgress: {} as Record<number, IqroProgress>,
+};
 
-      // Hijaiyah Actions
-      completeHijaiyahLesson: (
-        letterId: string,
-        letterName: string,
-        score: number,
-        harakatMastered: string[]
-      ) => {
-        const state = get();
-        const existing = state.hijaiyahProgress[letterId];
-        const attempts = existing ? existing.attempts + 1 : 1;
-        const userId = state.currentUserId || "demo-user";
+export const useLessonProgress = create<LessonProgressStore>()((set, get) => ({
+  ...initialState,
 
-        const progress: HijaiyahProgress = {
-          id: letterId,
-          userId,
-          letterId,
-          letterName,
-          completed: score >= 80,
-          score: Math.max(score, existing?.score || 0),
-          attempts,
-          lastAttemptDate: new Date().toISOString(),
-          harakatMastered: [
-            ...new Set([
-              ...(existing?.harakatMastered || []),
-              ...harakatMastered,
-            ]),
-          ],
-        };
+  // Hijaiyah Actions
+  completeHijaiyahLesson: async (
+    letterId: string,
+    letterName: string,
+    score: number,
+    harakatMastered: string[]
+  ) => {
+    const state = get();
+    if (!state.currentUserId) return;
 
-        set({
-          hijaiyahProgress: {
-            ...state.hijaiyahProgress,
-            [letterId]: progress,
-          },
-        });
+    // Use letterName as key for consistency
+    const existing = state.hijaiyahProgress[letterName];
+    const attempts = existing ? existing.attempts + 1 : 1;
 
-        // Sync to Supabase in background
-        if (state.currentUserId) {
-          hijaiyahProgressService
-            .upsert(state.currentUserId, progress)
-            .catch(console.error);
-        }
+    const progress: HijaiyahProgress = {
+      id: letterName,
+      userId: state.currentUserId,
+      letterId,
+      letterName,
+      completed: score >= 80,
+      score: Math.max(score, existing?.score || 0),
+      attempts,
+      lastAttemptDate: new Date().toISOString(),
+      harakatMastered: [
+        ...new Set([
+          ...(existing?.harakatMastered || []),
+          ...harakatMastered,
+        ]),
+      ],
+    };
+
+    // Update local state - use letterName as key
+    set({
+      hijaiyahProgress: {
+        ...state.hijaiyahProgress,
+        [letterName]: progress,
       },
+    });
 
-      getHijaiyahProgress: (letterId: string) => {
-        return get().hijaiyahProgress[letterId];
+    // Sync to Supabase
+    await hijaiyahProgressService.upsert(state.currentUserId, progress);
+  },
+
+  getHijaiyahProgress: (letterName: string) => {
+    return get().hijaiyahProgress[letterName];
+  },
+
+  isHijaiyahCompleted: (letterName: string) => {
+    const progress = get().hijaiyahProgress[letterName];
+    return progress?.completed || false;
+  },
+
+  // Story Actions
+  completeStoryLesson: async (
+    storyId: string,
+    storyTitle: string,
+    quizScore: number,
+    videoWatched: boolean
+  ) => {
+    const state = get();
+    if (!state.currentUserId) return;
+
+    const existing = state.storyProgress[storyId];
+    const attempts = existing ? existing.quizAttempts + 1 : 1;
+
+    const progress: StoryProgress = {
+      id: storyId,
+      userId: state.currentUserId,
+      storyId,
+      storyTitle,
+      completed: quizScore >= 80 && videoWatched,
+      videoWatched: videoWatched || existing?.videoWatched || false,
+      quizScore: Math.max(quizScore, existing?.quizScore || 0),
+      quizAttempts: attempts,
+      lastAttemptDate: new Date().toISOString(),
+    };
+
+    // Update local state
+    set({
+      storyProgress: {
+        ...state.storyProgress,
+        [storyId]: progress,
       },
+    });
 
-      isHijaiyahCompleted: (letterId: string) => {
-        const progress = get().hijaiyahProgress[letterId];
-        return progress?.completed || false;
+    // Sync to Supabase
+    await storyProgressService.upsert(state.currentUserId, progress);
+  },
+
+  getStoryProgress: (storyId: string) => {
+    return get().storyProgress[storyId];
+  },
+
+  isStoryCompleted: (storyId: string) => {
+    const progress = get().storyProgress[storyId];
+    return progress?.completed || false;
+  },
+
+  // Hadith Actions
+  completeHadithLesson: async (
+    hadithId: string,
+    hadithTitle: string,
+    quizScore: number,
+    audioPlayed: boolean,
+    memorized: boolean
+  ) => {
+    const state = get();
+    if (!state.currentUserId) return;
+
+    const existing = state.hadithProgress[hadithId];
+    const attempts = existing ? existing.quizAttempts + 1 : 1;
+
+    const progress: HadithProgress = {
+      id: hadithId,
+      userId: state.currentUserId,
+      hadithId,
+      hadithTitle,
+      completed: quizScore >= 80 && audioPlayed,
+      audioPlayed: audioPlayed || existing?.audioPlayed || false,
+      quizScore: Math.max(quizScore, existing?.quizScore || 0),
+      quizAttempts: attempts,
+      memorized: memorized || existing?.memorized || false,
+      lastAttemptDate: new Date().toISOString(),
+    };
+
+    // Update local state
+    set({
+      hadithProgress: {
+        ...state.hadithProgress,
+        [hadithId]: progress,
       },
+    });
 
-      // Story Actions
-      completeStoryLesson: (
-        storyId: string,
-        storyTitle: string,
-        quizScore: number,
-        videoWatched: boolean
-      ) => {
-        const state = get();
-        const existing = state.storyProgress[storyId];
-        const attempts = existing ? existing.quizAttempts + 1 : 1;
-        const userId = state.currentUserId || "demo-user";
+    // Sync to Supabase
+    await hadithProgressService.upsert(state.currentUserId, progress);
+  },
 
-        const progress: StoryProgress = {
-          id: storyId,
-          userId,
-          storyId,
-          storyTitle,
-          completed: quizScore >= 80 && videoWatched,
-          videoWatched: videoWatched || existing?.videoWatched || false,
-          quizScore: Math.max(quizScore, existing?.quizScore || 0),
-          quizAttempts: attempts,
-          lastAttemptDate: new Date().toISOString(),
-        };
+  getHadithProgress: (hadithId: string) => {
+    return get().hadithProgress[hadithId];
+  },
 
-        set({
-          storyProgress: {
-            ...state.storyProgress,
-            [storyId]: progress,
-          },
-        });
+  isHadithCompleted: (hadithId: string) => {
+    const progress = get().hadithProgress[hadithId];
+    return progress?.completed || false;
+  },
 
-        // Sync to Supabase in background
-        if (state.currentUserId) {
-          storyProgressService
-            .upsert(state.currentUserId, progress)
-            .catch(console.error);
-        }
+  // Iqro Actions
+  updateIqroProgress: async (
+    iqroId: number,
+    currentPage: number,
+    totalPages: number,
+    completed: boolean
+  ) => {
+    const state = get();
+    if (!state.currentUserId) return;
+
+    const progress: IqroProgress = {
+      id: iqroId,
+      userId: state.currentUserId,
+      iqroId,
+      currentPage,
+      totalPages,
+      completed: completed || state.iqroProgress[iqroId]?.completed || false,
+      lastReadDate: new Date().toISOString(),
+    };
+
+    // Update local state
+    set({
+      iqroProgress: {
+        ...state.iqroProgress,
+        [iqroId]: progress,
       },
+    });
 
-      getStoryProgress: (storyId: string) => {
-        return get().storyProgress[storyId];
-      },
+    // Sync to Supabase
+    await iqroProgressService.upsert(state.currentUserId, progress);
+  },
 
-      isStoryCompleted: (storyId: string) => {
-        const progress = get().storyProgress[storyId];
-        return progress?.completed || false;
-      },
+  getIqroProgress: (iqroId: number) => {
+    return get().iqroProgress[iqroId];
+  },
 
-      // Hadith Actions
-      completeHadithLesson: (
-        hadithId: string,
-        hadithTitle: string,
-        quizScore: number,
-        audioPlayed: boolean,
-        memorized: boolean
-      ) => {
-        const state = get();
-        const existing = state.hadithProgress[hadithId];
-        const attempts = existing ? existing.quizAttempts + 1 : 1;
-        const userId = state.currentUserId || "demo-user";
+  isIqroCompleted: (iqroId: number) => {
+    const progress = get().iqroProgress[iqroId];
+    return progress?.completed || false;
+  },
 
-        const progress: HadithProgress = {
-          id: hadithId,
-          userId,
-          hadithId,
-          hadithTitle,
-          completed: quizScore >= 80 && audioPlayed,
-          audioPlayed: audioPlayed || existing?.audioPlayed || false,
-          quizScore: Math.max(quizScore, existing?.quizScore || 0),
-          quizAttempts: attempts,
-          memorized: memorized || existing?.memorized || false,
-          lastAttemptDate: new Date().toISOString(),
-        };
+  // Stats
+  getTotalCompleted: () => {
+    const state = get();
 
-        set({
-          hadithProgress: {
-            ...state.hadithProgress,
-            [hadithId]: progress,
-          },
-        });
+    const hijaiyah = Object.values(state.hijaiyahProgress).filter(
+      (p) => p.completed
+    ).length;
 
-        // Sync to Supabase in background
-        if (state.currentUserId) {
-          hadithProgressService
-            .upsert(state.currentUserId, progress)
-            .catch(console.error);
-        }
-      },
+    const stories = Object.values(state.storyProgress).filter(
+      (p) => p.completed
+    ).length;
 
-      getHadithProgress: (hadithId: string) => {
-        return get().hadithProgress[hadithId];
-      },
+    const hadith = Object.values(state.hadithProgress).filter(
+      (p) => p.completed
+    ).length;
 
-      isHadithCompleted: (hadithId: string) => {
-        const progress = get().hadithProgress[hadithId];
-        return progress?.completed || false;
-      },
+    const iqro = Object.values(state.iqroProgress).filter(
+      (p) => p.completed
+    ).length;
 
-      // Iqro Actions
-      updateIqroProgress: (
-        iqroId: number,
-        currentPage: number,
-        totalPages: number,
-        completed: boolean
-      ) => {
-        const state = get();
-        const userId = state.currentUserId || "demo-user";
+    return {
+      hijaiyah,
+      stories,
+      hadith,
+      iqro,
+      total: hijaiyah + stories + hadith + iqro,
+    };
+  },
 
-        const progress: IqroProgress = {
-          id: iqroId,
-          userId,
-          iqroId,
-          currentPage,
-          totalPages,
-          completed:
-            completed || state.iqroProgress[iqroId]?.completed || false,
-          lastReadDate: new Date().toISOString(),
-        };
+  // Supabase operations
+  setCurrentUserId: (userId: string | null) => {
+    set({ currentUserId: userId });
+  },
 
-        set({
-          iqroProgress: {
-            ...state.iqroProgress,
-            [iqroId]: progress,
-          },
-        });
+  loadFromSupabase: async (userId: string) => {
+    set({ isLoading: true });
 
-        // Sync to Supabase in background
-        if (state.currentUserId) {
-          iqroProgressService
-            .upsert(state.currentUserId, progress)
-            .catch(console.error);
-        }
-      },
+    try {
+      const [hijaiyah, story, hadith, iqro] = await Promise.all([
+        hijaiyahProgressService.fetchAll(userId),
+        storyProgressService.fetchAll(userId),
+        hadithProgressService.fetchAll(userId),
+        iqroProgressService.fetchAll(userId),
+      ]);
 
-      getIqroProgress: (iqroId: number) => {
-        return get().iqroProgress[iqroId];
-      },
-
-      isIqroCompleted: (iqroId: number) => {
-        const progress = get().iqroProgress[iqroId];
-        return progress?.completed || false;
-      },
-
-      // Stats
-      getTotalCompleted: () => {
-        const state = get();
-
-        const hijaiyah = Object.values(state.hijaiyahProgress).filter(
-          (p) => p.completed
-        ).length;
-
-        const stories = Object.values(state.storyProgress).filter(
-          (p) => p.completed
-        ).length;
-
-        const hadith = Object.values(state.hadithProgress).filter(
-          (p) => p.completed
-        ).length;
-
-        const iqro = Object.values(state.iqroProgress).filter(
-          (p) => p.completed
-        ).length;
-
-        return {
-          hijaiyah,
-          stories,
-          hadith,
-          iqro,
-          total: hijaiyah + stories + hadith + iqro,
-        };
-      },
-
-      // Supabase sync methods
-      setCurrentUserId: (userId: string | null) => {
-        set({ currentUserId: userId });
-      },
-
-      loadFromSupabase: async (userId: string) => {
-        set({ isSyncing: true });
-
-        try {
-          const [hijaiyah, story, hadith, iqro] = await Promise.all([
-            hijaiyahProgressService.fetchAll(userId),
-            storyProgressService.fetchAll(userId),
-            hadithProgressService.fetchAll(userId),
-            iqroProgressService.fetchAll(userId),
-          ]);
-
-          set({
-            currentUserId: userId,
-            hijaiyahProgress: hijaiyah,
-            storyProgress: story,
-            hadithProgress: hadith,
-            iqroProgress: iqro,
-          });
-        } catch (error) {
-          console.error("Error loading progress from Supabase:", error);
-        } finally {
-          set({ isSyncing: false });
-        }
-      },
-
-      syncAllToSupabase: async (userId: string) => {
-        const state = get();
-        set({ isSyncing: true });
-
-        try {
-          // Sync all progress to Supabase
-          const promises: Promise<boolean>[] = [];
-
-          for (const progress of Object.values(state.hijaiyahProgress)) {
-            promises.push(hijaiyahProgressService.upsert(userId, progress));
-          }
-
-          for (const progress of Object.values(state.storyProgress)) {
-            promises.push(storyProgressService.upsert(userId, progress));
-          }
-
-          for (const progress of Object.values(state.hadithProgress)) {
-            promises.push(hadithProgressService.upsert(userId, progress));
-          }
-
-          for (const progress of Object.values(state.iqroProgress)) {
-            promises.push(iqroProgressService.upsert(userId, progress));
-          }
-
-          await Promise.all(promises);
-        } catch (error) {
-          console.error("Error syncing progress to Supabase:", error);
-        } finally {
-          set({ isSyncing: false });
-        }
-      },
-    }),
-    {
-      name: "lesson-progress-storage",
-      partialize: (state) => ({
-        hijaiyahProgress: state.hijaiyahProgress,
-        storyProgress: state.storyProgress,
-        hadithProgress: state.hadithProgress,
-        iqroProgress: state.iqroProgress,
-      }),
+      set({
+        currentUserId: userId,
+        hijaiyahProgress: hijaiyah,
+        storyProgress: story,
+        hadithProgress: hadith,
+        iqroProgress: iqro,
+        isInitialized: true,
+      });
+    } catch (error) {
+      console.error("Error loading progress from Supabase:", error);
+    } finally {
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  refreshFromSupabase: async () => {
+    const state = get();
+    if (!state.currentUserId) return;
+
+    await get().loadFromSupabase(state.currentUserId);
+  },
+
+  resetStore: () => {
+    set(initialState);
+  },
+}));

@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getSession, setSession, clearSession, type SessionData } from "@/lib/session";
 import type { Profile } from "@/types/supabase";
+import { useUserProgress } from "@/store/use-user-progress";
+import { useLessonProgress } from "@/store/use-lesson-progress";
 
 interface AuthContextType {
   session: SessionData | null;
@@ -29,6 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
+  
+  // Get store actions
+  const loadUserProgress = useUserProgress((state) => state.loadFromSupabase);
+  const resetUserProgress = useUserProgress((state) => state.resetStore);
+  const loadLessonProgress = useLessonProgress((state) => state.loadFromSupabase);
+  const resetLessonProgress = useLessonProgress((state) => state.resetStore);
 
   // Fetch profile from database
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -48,6 +56,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Exception fetching profile:", err);
       return null;
+    }
+  };
+
+  // Load progress data from Supabase
+  const loadProgressData = async (userId: string) => {
+    try {
+      await Promise.all([
+        loadUserProgress(userId),
+        loadLessonProgress(userId),
+      ]);
+    } catch (error) {
+      console.error("Error loading progress data:", error);
     }
   };
 
@@ -88,6 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSessionState(sessionData);
       setProfile(profileData);
 
+      // Load progress data from Supabase
+      await loadProgressData(profileData.id);
+
       return { success: true };
     } catch (err) {
       console.error("Sign in error:", err);
@@ -100,6 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearSession();
     setSessionState(null);
     setProfile(null);
+    // Reset stores
+    resetUserProgress();
+    resetLessonProgress();
     window.location.replace("/");
   };
 
@@ -126,10 +152,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setSession(updatedSession);
               setSessionState(updatedSession);
             }
+            // Load progress data from Supabase
+            await loadProgressData(existingSession.userId);
           } else {
             // Profile not found, clear session
             clearSession();
             setSessionState(null);
+            resetUserProgress();
+            resetLessonProgress();
           }
         }
       } catch (error) {
@@ -140,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

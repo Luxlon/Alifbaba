@@ -54,11 +54,11 @@ const QuestsPage = () => {
   const achievements = getQuestsByType("ACHIEVEMENT");
   const unclaimedQuests = getUnclaimedQuests();
 
-  const handleClaimReward = (questId: string) => {
+  const handleClaimReward = async (questId: string) => {
     const reward = claimQuestReward(questId);
     if (reward) {
-      addXp(reward.xp);
-      addPoints(reward.points);
+      await addXp(reward.xp);
+      await addPoints(reward.points);
       toast.success("Hadiah Diterima! 🎁", {
         description: `+${reward.xp} XP dan +${reward.points} Poin`,
       });

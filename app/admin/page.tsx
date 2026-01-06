@@ -200,6 +200,7 @@ export default function AdminPage() {
         type ProgressRow = {
           id: string;
           user_id: string;
+          name: string | null;
           xp: number;
           hearts: number;
           points: number;
@@ -209,6 +210,8 @@ export default function AdminPage() {
 
         const progressPromises = typedProgress.map(async (p) => {
           const student = usersWithTeacher.find((u) => u.id === p.user_id);
+          // Use name from user_progress, fallback to profile username
+          const displayName = p.name || student?.username || "Unknown";
           const [hijaiyah, stories, hadith, iqro] = await Promise.all([
             supabase
               .from("hijaiyah_progress")
@@ -234,7 +237,7 @@ export default function AdminPage() {
 
           return {
             ...p,
-            student_name: student?.username || "Unknown",
+            student_name: displayName,
             hijaiyah_completed: hijaiyah.count || 0,
             stories_completed: stories.count || 0,
             hadith_completed: hadith.count || 0,
@@ -304,30 +307,36 @@ export default function AdminPage() {
       // Generate UUID for new user
       const newUserId = crypto.randomUUID();
 
-      // Insert new profile
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: newUserId,
-        username: formData.username.toLowerCase().trim(),
-        password: formData.password,
-        email: formData.email || null,
-        role: formData.role,
-        teacher_id: formData.role === "student" && formData.teacher_id ? formData.teacher_id : null,
-        is_active: formData.is_active,
-      } as any);
+      // Insert new profile using type assertion to avoid strict typing issues
+      const { error: profileError } = await (supabase
+        .from("profiles") as ReturnType<typeof supabase.from>)
+        .insert({
+          id: newUserId,
+          username: formData.username.toLowerCase().trim(),
+          password: formData.password,
+          email: formData.email || null,
+          role: formData.role,
+          teacher_id: formData.role === "student" && formData.teacher_id ? formData.teacher_id : null,
+          is_active: formData.is_active,
+        });
 
       if (profileError) throw profileError;
 
       // Create user_progress entry
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await supabase.from("user_progress").insert({
-        user_id: newUserId,
-        name: formData.username,
-        hearts: 5,
-        xp: 0,
-        points: 0,
-        streak: 0,
-      } as any);
+      const { error: progressError } = await (supabase
+        .from("user_progress") as ReturnType<typeof supabase.from>)
+        .insert({
+          user_id: newUserId,
+          name: formData.username,
+          hearts: 5,
+          xp: 0,
+          points: 0,
+          streak: 0,
+        });
+
+      if (progressError) {
+        console.error("Error creating progress:", progressError);
+      }
 
       toast.success(`User ${formData.username} berhasil dibuat!`);
       setShowCreateModal(false);
@@ -949,9 +958,9 @@ export default function AdminPage() {
                 <div className="space-y-2">
                   <Label htmlFor="teacher">Assign ke Guru</Label>
                   <Select
-                    value={formData.teacher_id}
+                    value={formData.teacher_id || "none"}
                     onValueChange={(v) =>
-                      setFormData({ ...formData, teacher_id: v })
+                      setFormData({ ...formData, teacher_id: v === "none" ? "" : v })
                     }
                     disabled={isCreating}
                   >
@@ -959,7 +968,7 @@ export default function AdminPage() {
                       <SelectValue placeholder="Pilih guru (opsional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {teachers.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.username}
@@ -1036,9 +1045,9 @@ export default function AdminPage() {
                 <div className="space-y-2">
                   <Label htmlFor="edit-teacher">Assign ke Guru</Label>
                   <Select
-                    value={formData.teacher_id}
+                    value={formData.teacher_id || "none"}
                     onValueChange={(v) =>
-                      setFormData({ ...formData, teacher_id: v })
+                      setFormData({ ...formData, teacher_id: v === "none" ? "" : v })
                     }
                     disabled={isUpdating}
                   >
@@ -1046,7 +1055,7 @@ export default function AdminPage() {
                       <SelectValue placeholder="Pilih guru" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {teachers.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.username}

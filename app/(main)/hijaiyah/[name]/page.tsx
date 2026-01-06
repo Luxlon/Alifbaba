@@ -163,7 +163,7 @@ const HijaiyahLessonPage = () => {
   };
 
   // Handle check answer
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = async () => {
     if (selectedOptions.length === 0) return;
 
     setIsChecking(true);
@@ -186,7 +186,7 @@ const HijaiyahLessonPage = () => {
       // Calculate and add XP
       const isFirstTry = currentAttempts === 0;
       const xpEarned = calculateChallengeXP(correct, isFirstTry);
-      addXp(xpEarned);
+      await addXp(xpEarned);
 
       if (isFirstTry) {
         toast.success(`+${xpEarned} XP`, {
@@ -196,7 +196,7 @@ const HijaiyahLessonPage = () => {
     } else {
       // Wrong answer - lose heart
       if (hearts > 0) {
-        removeHearts(1);
+        await removeHearts(1);
         toast.error("Jawaban belum tepat", {
           description: "Kamu kehilangan 1 nyawa. Coba lagi!",
         });
@@ -224,15 +224,15 @@ const HijaiyahLessonPage = () => {
   };
 
   // Handle lesson completion
-  const handleLessonComplete = () => {
+  const handleLessonComplete = async () => {
     const score = calculateLessonScore(correctAnswersCount, challenges.length);
     const harakatMastered = HARAKAT.slice(0, 3).map((h) => h.id); // Mock: mastered first 3 harakat
 
     // Save progress
-    completeHijaiyahLesson(name, letter.name, score, harakatMastered);
+    await completeHijaiyahLesson(name, letter.name, score, harakatMastered);
 
     // Add bonus points
-    addPoints(20);
+    await addPoints(20);
 
     // Navigate to result page
     router.push(`/hijaiyah/${name}/result?score=${score}`);

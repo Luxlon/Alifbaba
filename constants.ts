@@ -250,9 +250,10 @@ export const IQRO_DATA = [
 // DATA KISAH NABI - TAMBAHKAN VIDEO BARU DI SINI
 // ============================================
 // Format: { id, title, prophet, youtubeId, description, duration, quizQuestions }
+// ID harus berupa string yang match dengan database (story_id TEXT)
 export const PROPHET_STORIES = [
   {
-    id: 1,
+    id: "adam",
     title: "Kisah Nabi Adam AS",
     prophet: "Adam AS",
     youtubeId: "EMmPWZMQL68", // Ganti dengan YouTube Video ID
@@ -272,7 +273,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 2,
+    id: "nuh",
     title: "Kisah Nabi Nuh AS",
     prophet: "Nuh AS",
     youtubeId: "VIDEO_ID_2", // Ganti dengan YouTube Video ID
@@ -287,7 +288,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 3,
+    id: "ibrahim",
     title: "Kisah Nabi Ibrahim AS",
     prophet: "Ibrahim AS",
     youtubeId: "VIDEO_ID_3", // Ganti dengan YouTube Video ID
@@ -302,7 +303,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 4,
+    id: "musa",
     title: "Kisah Nabi Musa AS",
     prophet: "Musa AS",
     youtubeId: "VIDEO_ID_4", // Ganti dengan YouTube Video ID
@@ -317,7 +318,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 5,
+    id: "yusuf",
     title: "Kisah Nabi Yusuf AS",
     prophet: "Yusuf AS",
     youtubeId: "VIDEO_ID_5", // Ganti dengan YouTube Video ID
@@ -337,7 +338,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 6,
+    id: "isa",
     title: "Kisah Nabi Isa AS",
     prophet: "Isa AS",
     youtubeId: "VIDEO_ID_6", // Ganti dengan YouTube Video ID
@@ -357,7 +358,7 @@ export const PROPHET_STORIES = [
     ],
   },
   {
-    id: 7,
+    id: "muhammad",
     title: "Kisah Nabi Muhammad SAW",
     prophet: "Muhammad SAW",
     youtubeId: "VIDEO_ID_7", // Ganti dengan YouTube Video ID
@@ -388,9 +389,10 @@ export const PROPHET_STORIES = [
 // ============================================
 // Hadist-hadist pilihan yang cocok untuk anak-anak (pendek dan mudah dimengerti)
 // Audio files sudah tersedia di public/audio/hadith/
+// ID harus berupa string yang match dengan database (hadith_id TEXT)
 export const HADITH_LIST: HadithData[] = [
   {
-    id: 1,
+    id: "hadith-1",
     title: "Kasih Sayang",
     arabicText: "الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ",
     transliteration: "Ar-raahimuuna yarhamuhumu ar-rahmaan",
@@ -401,7 +403,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 2,
+    id: "hadith-2",
     title: "Senyum adalah Sedekah",
     arabicText: "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ صَدَقَةٌ",
     transliteration: "Tabasumuka fii wajhi akiika shadaqah",
@@ -412,7 +414,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 3,
+    id: "hadith-3",
     title: "Kebersihan",
     arabicText: "الطَّهُورُ شَطْرُ الْإِيمَانِ",
     transliteration: "Ath-thuhuuru syathru al-iimaan",
@@ -423,7 +425,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 4,
+    id: "hadith-4",
     title: "Berbuat Baik kepada Orang Tua",
     arabicText: "رِضَا اللَّهِ فِي رِضَا الْوَالِدَيْنِ",
     transliteration: "Ridha allahi fii ridha al-waalidain",
@@ -434,7 +436,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 5,
+    id: "hadith-5",
     title: "Malu",
     arabicText: "الْحَيَاءُ شُعْبَةٌ مِنَ الْإِيمَانِ",
     transliteration: "Al-hayaa'u syu'batun min al-iimaan",
@@ -445,7 +447,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 6,
+    id: "hadith-6",
     title: "Jujur",
     arabicText: "إِنَّ الصِّدْقَ يَهْدِي إِلَى الْبِرِّ",
     transliteration: "Inna ash-shidqa yahdii ila al-birr",
@@ -456,7 +458,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 7,
+    id: "hadith-7",
     title: "Tidak Marah",
     arabicText: "لَا تَغْضَبْ",
     transliteration: "Laa taghdab",
@@ -467,7 +469,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 8,
+    id: "hadith-8",
     title: "Menyayangi yang di Bumi",
     arabicText: "ارْحَمُوا مَنْ فِي الْأَرْضِ يَرْحَمْكُمْ مَنْ فِي السَّمَاءِ",
     transliteration: "Irhamuu man fii al-ardhi yarhamkum man fii as-samaa'",
@@ -478,7 +480,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 9,
+    id: "hadith-9",
     title: "Mencintai Saudara",
     arabicText: "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
     transliteration: "Laa yu'minu ahadukum hattaa yuhibba li akhiihi maa yuhibbu li nafsihi",
@@ -489,7 +491,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 10,
+    id: "hadith-10",
     title: "Bersyukur",
     arabicText: "مَنْ لَمْ يَشْكُرِ النَّاسَ لَمْ يَشْكُرِ اللَّهَ",
     transliteration: "Man lam yasykuri an-naasa lam yasykuri allaha",
@@ -500,7 +502,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 11,
+    id: "hadith-11",
     title: "Niat",
     arabicText: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
     transliteration: "Innama al-a'maalu bin niyyaat",
@@ -511,7 +513,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 12,
+    id: "hadith-12",
     title: "Menjaga Lisan",
     arabicText: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
     transliteration: "Man kaana yu'minu billaahi wal yawmi al-aakhiri fal yaqul khairan aw liyashmut",
@@ -522,7 +524,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 13,
+    id: "hadith-13",
     title: "Menuntut Ilmu",
     arabicText: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
     transliteration: "Thalabul 'ilmi fariidhatun 'alaa kulli muslim",
@@ -533,7 +535,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 14,
+    id: "hadith-14",
     title: "Menjaga Kebersihan",
     arabicText: "النَّظَافَةُ مِنَ الْإِيمَانِ",
     transliteration: "An-nadhaafatu min al-iimaan",
@@ -544,7 +546,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 15,
+    id: "hadith-15",
     title: "Berbuat Baik",
     arabicText: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ",
     transliteration: "Ahabbu an-naasi ilallahi anfa'uhum lin-naas",
@@ -555,7 +557,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 16,
+    id: "hadith-16",
     title: "Sabar",
     arabicText: "الصَّبْرُ ضِيَاءٌ",
     transliteration: "Ash-shabru dhiyaa'",
@@ -566,7 +568,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 17,
+    id: "hadith-17",
     title: "Ridho Allah pada Orang Tua",
     arabicText: "رِضَا الرَّبِّ فِي رِضَا الْوَالِدِ",
     transliteration: "Ridha ar-rabbi fii ridha al-waalid",
@@ -577,7 +579,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "easy" as const,
   },
   {
-    id: 18,
+    id: "hadith-18",
     title: "Menjaga Tetangga",
     arabicText: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيُكْرِمْ جَارَهُ",
     transliteration: "Man kaana yu'minu billaahi wal yawmi al-aakhiri fal yukrim jaarahu",
@@ -588,7 +590,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 19,
+    id: "hadith-19",
     title: "Bersikap Lemah Lembut",
     arabicText: "إِنَّ الرِّفْقَ لَا يَكُونُ فِي شَيْءٍ إِلَّا زَانَهُ",
     transliteration: "Inna ar-rifqa laa yakuunu fii syai'in illaa zaanahu",
@@ -599,7 +601,7 @@ export const HADITH_LIST: HadithData[] = [
     difficulty: "medium" as const,
   },
   {
-    id: 20,
+    id: "hadith-20",
     title: "Menolong Sesama",
     arabicText: "اللَّهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
     transliteration: "Allahu fii 'awni al-'abdi maa kaana al-'abdu fii 'awni akhiihi",

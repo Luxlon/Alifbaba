@@ -157,7 +157,7 @@ export interface Lesson {
 
 // Hadith data structure
 export interface HadithData {
-  id: number;
+  id: string;
   title: string;
   arabicText: string;
   transliteration: string;

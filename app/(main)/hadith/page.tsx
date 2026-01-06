@@ -14,16 +14,29 @@ import {
   Heart,
   Play,
   Volume2,
+  Loader2,
 } from "lucide-react";
 
 const HadithPage = () => {
-  const { hearts, xp, points } = useUserProgress();
-  const { isHadithCompleted, getHadithProgress, getTotalCompleted } =
+  const { hearts, xp, points, isInitialized: userInitialized } = useUserProgress();
+  const { isHadithCompleted, getHadithProgress, getTotalCompleted, isInitialized: lessonInitialized } =
     useLessonProgress();
 
   const completedCount = getTotalCompleted().hadith;
   const totalHadith = HADITH_LIST.length;
-  const progressPercentage = (completedCount / totalHadith) * 100;
+  const progressPercentage = Math.round((completedCount / totalHadith) * 100);
+
+  // Show loading state while data is being fetched
+  if (!lessonInitialized || !userInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+          <p className="text-muted-foreground">Memuat progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-16 sm:pb-20">
@@ -109,11 +122,11 @@ const HadithPage = () => {
         {/* Hadith List */}
         <div className="space-y-3 sm:space-y-4">
           {HADITH_LIST.map((hadith, index) => {
-            const isCompleted = isHadithCompleted(String(hadith.id));
+            const isCompleted = isHadithCompleted(hadith.id);
 
             // First hadith is always unlocked, others need previous to be completed
             const previousCompleted =
-              index === 0 || isHadithCompleted(String(HADITH_LIST[index - 1].id));
+              index === 0 || isHadithCompleted(HADITH_LIST[index - 1].id);
             const isLocked = !previousCompleted;
 
             return (
