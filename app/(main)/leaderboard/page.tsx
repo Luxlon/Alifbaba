@@ -18,8 +18,19 @@ interface LeaderboardEntry {
   rank: number;
 }
 
+interface UserProgressWithProfile {
+  user_id: string;
+  xp: number | null;
+  streak: number | null;
+  name: string | null;
+  profiles: {
+    username: string;
+    role: string;
+  } | null;
+}
+
 const LeaderboardPage = () => {
-  const { session, profile } = useAuth();
+  const { session } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<number>(0);
   const [currentUserXp, setCurrentUserXp] = useState<number>(0);
@@ -51,18 +62,19 @@ const LeaderboardPage = () => {
       if (error) throw error;
 
       if (progressData) {
+        // Cast to proper type
+        const typedData = progressData as unknown as UserProgressWithProfile[];
+        
         // Filter only students and take top 50
-        const studentData = progressData.filter((item) => {
-          const profile = item.profiles as { username: string; role: string } | null;
-          return profile?.role === "student";
+        const studentData = typedData.filter((item) => {
+          return item.profiles?.role === "student";
         }).slice(0, 50);
 
         const entries: LeaderboardEntry[] = studentData.map((item, index) => {
           // Use profile username if available, fallback to user_progress name
-          const profileData = item.profiles as { username: string; role: string } | null;
           return {
             userId: item.user_id,
-            name: profileData?.username || item.name || "Pengguna",
+            name: item.profiles?.username || item.name || "Pengguna",
             xp: item.xp || 0,
             streak: item.streak || 0,
             rank: index + 1,
@@ -86,14 +98,15 @@ const LeaderboardPage = () => {
               .eq("user_id", session.userId)
               .single();
 
-            if (userProgress) {
-              setCurrentUserXp(userProgress.xp || 0);
-              setCurrentUserStreak(userProgress.streak || 0);
+            const typedUserProgress = userProgress as { xp: number | null; streak: number | null } | null;
+            if (typedUserProgress) {
+              setCurrentUserXp(typedUserProgress.xp || 0);
+              setCurrentUserStreak(typedUserProgress.streak || 0);
               // Calculate approximate rank
               const { count } = await supabase
                 .from("user_progress")
                 .select("*", { count: "exact", head: true })
-                .gt("xp", userProgress.xp || 0);
+                .gt("xp", typedUserProgress.xp || 0);
               setCurrentUserRank((count || 0) + 1);
             }
           }
@@ -110,6 +123,7 @@ const LeaderboardPage = () => {
 
   useEffect(() => {
     fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const handleRefresh = () => {

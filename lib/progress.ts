@@ -1,4 +1,4 @@
-import type { Challenge, ChallengeResult } from "@/types/database";
+import type { Challenge } from "@/types/database";
 import {
   XP_REWARDS,
   HEARTS_CONFIG,

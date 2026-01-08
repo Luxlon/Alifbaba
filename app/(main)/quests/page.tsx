@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
 import { useQuests } from "@/store/use-quests";
+import type { Quest } from "@/store/use-quests";
 import { formatXP, formatPoints } from "@/lib/progress";
 import { toast } from "sonner";
 import { CheckCircle2, Gift, Star, Trophy, Flame, Target } from "lucide-react";
@@ -16,7 +17,6 @@ const QuestsPage = () => {
   const { xp, points, streak, addXp, addPoints } = useUserProgress();
   const { getTotalCompleted } = useLessonProgress();
   const {
-    quests,
     checkAndResetQuests,
     updateQuestProgress,
     claimQuestReward,
@@ -69,7 +69,7 @@ const QuestsPage = () => {
     quest,
     color,
   }: {
-    quest: (typeof quests)[0];
+    quest: Quest;
     color: string;
   }) => {
     const progressPercent = Math.round((quest.progress / quest.target) * 100);

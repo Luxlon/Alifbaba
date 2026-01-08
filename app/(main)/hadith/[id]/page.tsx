@@ -6,14 +6,12 @@ import { HADITH_LIST } from "@/constants";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
 import { useHeartsModal } from "@/store/use-hearts-modal";
-import { AudioPlayer } from "@/components/audio-player";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   X,
   Heart,
   Star,
-  Volume2,
   Pause,
   Play,
   RotateCcw,
@@ -69,7 +67,6 @@ const HadithDetailPage = () => {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
-  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
   // Audio ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -187,14 +184,11 @@ const HadithDetailPage = () => {
 
     setIsCorrect(correct);
 
-    // Mark this question as answered
-    setAnsweredQuestions(prev => new Set(prev).add(currentQuestionIndex));
-
     if (correct) {
       setCorrectAnswersCount((prev) => prev + 1);
       // Only add XP if not already completed this hadith with 100%
       const existingProgress = hadithProgress[hadithId];
-      if (!existingProgress || existingProgress.progress < 100) {
+      if (!existingProgress || !existingProgress.completed) {
         await addXp(10);
         toast.success("+10 XP", {
           description: "Jawaban benar!",
@@ -219,8 +213,7 @@ const HadithDetailPage = () => {
     setSelectedAnswer(null);
 
     if (currentQuestionIndex >= quizQuestions.length - 1) {
-      // Quiz complete - count actual correct answers including current one
-      const finalCorrect = correctAnswersCount + (isCorrect ? 0 : 0); // Already counted in handleCheckAnswer
+      // Quiz complete - calculate score
       const score = Math.round(
         (correctAnswersCount / quizQuestions.length) * 100
       );
@@ -242,7 +235,7 @@ const HadithDetailPage = () => {
     
     // Only add bonus XP/points if this is first completion or improving score
     const existingProgress = hadithProgress[hadithId];
-    if (!existingProgress || existingProgress.progress < 100) {
+    if (!existingProgress || !existingProgress.completed) {
       await addPoints(20);
       await addXp(40);
     }
@@ -313,7 +306,7 @@ const HadithDetailPage = () => {
 
             {/* Translation */}
             <p className="text-base sm:text-lg text-center text-muted-foreground italic">
-              "{hadith.translation}"
+              &ldquo;{hadith.translation}&rdquo;
             </p>
 
             {/* Category Badge */}
@@ -396,7 +389,7 @@ const HadithDetailPage = () => {
 
             {/* Translation */}
             <p className="text-base sm:text-lg text-center text-muted-foreground italic">
-              "{hadith.translation}"
+              &ldquo;{hadith.translation}&rdquo;
             </p>
           </div>
 

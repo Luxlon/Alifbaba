@@ -11,7 +11,6 @@ import { checkChallengeAnswer, calculateChallengeXP, calculateLessonScore } from
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChallengeCard, ChallengeResult } from "@/components/challenge-card";
-import { AudioPlayer } from "@/components/audio-player";
 import { X, Heart, Star, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -276,7 +275,7 @@ const HijaiyahLessonPage = () => {
       
       // Check if already completed this lesson with 100%
       const existingProgress = hijaiyahProgress[name];
-      const isAlreadyComplete = existingProgress && existingProgress.progress >= 100;
+      const isAlreadyComplete = existingProgress && existingProgress.completed;
       
       // Calculate and add XP only if not already completed
       if (!isAlreadyComplete) {
@@ -338,7 +337,7 @@ const HijaiyahLessonPage = () => {
 
     // Check if already completed before
     const existingProgress = hijaiyahProgress[name];
-    const isAlreadyComplete = existingProgress && existingProgress.progress >= 100;
+    const isAlreadyComplete = existingProgress && existingProgress.completed;
 
     // Add bonus points only if first completion
     if (!isAlreadyComplete) {

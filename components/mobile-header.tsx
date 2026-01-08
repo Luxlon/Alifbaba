@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useAuth } from "@/components/providers/auth-provider";
-import { User, LogOut, BookOpen, Book, Users, ShoppingBag, Home, Trophy } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { User, BookOpen, Book, ShoppingBag, Home, Trophy } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const navItems = [
   { label: "Belajar", href: "/learn", icon: Home },
@@ -20,9 +20,8 @@ const navItems = [
 
 export const MobileHeader = () => {
   const { hearts, points } = useUserProgress();
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   // Prevent hydration mismatch

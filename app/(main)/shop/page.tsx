@@ -314,7 +314,7 @@ const ShopPage = () => {
                             </div>
                           ) : (
                             <Button
-                              variant={points >= item.price ? "super" : "default"}
+                              variant={points >= item.price ? "success" : "default"}
                               size="sm"
                               className="h-7 sm:h-8 text-xs sm:text-sm"
                               onClick={() => handlePurchase(item)}

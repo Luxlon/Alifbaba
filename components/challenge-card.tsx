@@ -3,7 +3,6 @@
 import { Challenge, type ChallengeOption } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { AudioPlayer } from "@/components/audio-player";
-import { useState } from "react";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -53,7 +52,6 @@ export const ChallengeCard = ({
               key={option.id}
               option={option}
               isSelected={isSelected}
-              isMultiSelect={isMultiSelect}
               onSelect={() => onSelectOption(option.id)}
               disabled={disabled}
               challengeType={challenge.type}
@@ -68,7 +66,6 @@ export const ChallengeCard = ({
 interface ChallengeOptionProps {
   option: ChallengeOption;
   isSelected: boolean;
-  isMultiSelect: boolean;
   onSelect: () => void;
   disabled: boolean;
   challengeType: Challenge["type"];
@@ -77,7 +74,6 @@ interface ChallengeOptionProps {
 const ChallengeOption = ({
   option,
   isSelected,
-  isMultiSelect,
   onSelect,
   disabled,
   challengeType,

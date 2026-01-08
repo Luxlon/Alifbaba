@@ -13,6 +13,7 @@ interface YouTubePlayerProps {
 export const YouTubePlayer = ({
   videoId,
   title,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onVideoEnd,
   autoplay = false,
 }: YouTubePlayerProps) => {
@@ -43,6 +44,7 @@ export const YouTubePlayer = ({
             onClick={handlePlay}
           >
             {/* YouTube Thumbnail */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
               alt={title || "Video thumbnail"}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
 
 export const RouteLoader = () => {
   const pathname = usePathname();
@@ -16,9 +15,6 @@ export const RouteLoader = () => {
 
   // Listen for route change start
   useEffect(() => {
-    const handleStart = () => setIsLoading(true);
-    const handleComplete = () => setIsLoading(false);
-
     // Listen to click events on links
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;

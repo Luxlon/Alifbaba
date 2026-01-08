@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { IQRO_DATA } from "@/constants";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
 import { Book, ChevronRight, Star, CheckCircle2, Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const IqroPage = () => {

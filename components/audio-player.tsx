@@ -22,7 +22,6 @@ export const AudioPlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1.0);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -38,8 +37,8 @@ export const AudioPlayer = ({
     });
 
     // Auto play if requested
-    if (autoPlay) {
-      handlePlay();
+    if (autoPlay && audioRef.current) {
+      audioRef.current.play().catch(console.error);
     }
 
     // Cleanup

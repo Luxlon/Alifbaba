@@ -20,7 +20,7 @@ export const LoadingLink = ({
 }: LoadingLinkProps) => {
   const pathname = usePathname();
   const [isNavigating, setIsNavigating] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleClick = () => {
     if (pathname !== href) {

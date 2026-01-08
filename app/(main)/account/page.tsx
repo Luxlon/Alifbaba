@@ -12,7 +12,6 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { formatXP, formatPoints } from "@/lib/progress";
 import { toast } from "sonner";
 import {
-  User,
   Star,
   Heart,
   Flame,

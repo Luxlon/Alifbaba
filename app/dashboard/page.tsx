@@ -23,7 +23,6 @@ import {
   FileText,
   Star,
   Flame,
-  Filter,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -222,6 +221,7 @@ export default function DashboardPage() {
     if (!authLoading && session && profile?.role === "teacher") {
       fetchStudents();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, session, profile]);
 
   // Filter and sort students

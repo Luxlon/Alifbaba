@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 
 const HadithPage = () => {
-  const { hearts, xp, points, isInitialized: userInitialized } = useUserProgress();
-  const { isHadithCompleted, getHadithProgress, getTotalCompleted, isInitialized: lessonInitialized } =
+  const { hearts, xp, isInitialized: userInitialized } = useUserProgress();
+  const { isHadithCompleted, getTotalCompleted, isInitialized: lessonInitialized } =
     useLessonProgress();
 
   const completedCount = getTotalCompleted().hadith;
@@ -208,7 +208,7 @@ const HadithPage = () => {
                           ${isLocked ? "text-gray-300" : "text-muted-foreground"}
                         `}
                       >
-                        "{hadith.translation}"
+                        &ldquo;{hadith.translation}&rdquo;
                       </p>
 
                       {/* Meta Info */}

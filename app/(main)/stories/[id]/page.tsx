@@ -35,11 +35,8 @@ const StoryDetailPage = () => {
 
   // Stores
   const { hearts, xp, removeHearts, addXp, addPoints } = useUserProgress();
-  const { completeStoryLesson, getStoryProgress, storyProgress } = useLessonProgress();
+  const { completeStoryLesson, storyProgress } = useLessonProgress();
   const { open: openHeartsModal } = useHeartsModal();
-
-  // Get progress
-  const progress = getStoryProgress(storyId);
 
   // Redirect if story not found
   useEffect(() => {
@@ -60,16 +57,6 @@ const StoryDetailPage = () => {
   // Handle video end
   const handleVideoEnd = () => {
     setVideoWatched(true);
-  };
-
-  // Handle skip video (for demo/testing)
-  const handleSkipVideo = () => {
-    setVideoWatched(true);
-    if (hasQuiz) {
-      setPhase("quiz");
-    } else {
-      handleLessonComplete(100);
-    }
   };
 
   // Handle answer selection
@@ -99,7 +86,7 @@ const StoryDetailPage = () => {
       
       // Only add XP if not already completed
       const existingProgress = storyProgress[storyId];
-      if (!existingProgress || existingProgress.progress < 100) {
+      if (!existingProgress || !existingProgress.completed) {
         await addXp(10);
         toast.success("+10 XP", {
           description: "Jawaban benar!",
@@ -147,7 +134,7 @@ const StoryDetailPage = () => {
     
     // Only add bonus if first completion
     const existingProgress = storyProgress[storyId];
-    if (!existingProgress || existingProgress.progress < 100) {
+    if (!existingProgress || !existingProgress.completed) {
       await addPoints(25);
       await addXp(50);
     }

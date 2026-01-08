@@ -33,8 +33,10 @@ export const PDFViewer = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pdfDocRef = useRef<any>(null);
   
   // Touch handling
@@ -85,6 +87,7 @@ export const PDFViewer = ({
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   // Render page function
@@ -355,7 +358,7 @@ export const PDFViewer = ({
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           {/* Previous Button */}
           <Button
-            variant="secondaryOutline"
+            variant="outline"
             size="sm"
             onClick={goToPreviousPage}
             disabled={currentPage <= 1 || isLocked || isAnimating}
@@ -406,7 +409,7 @@ export const PDFViewer = ({
 
           {/* Next Button */}
           <Button
-            variant="secondaryOutline"
+            variant="outline"
             size="sm"
             onClick={goToNextPage}
             disabled={currentPage >= numPages || isLocked || isAnimating}
