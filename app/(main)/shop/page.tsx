@@ -10,7 +10,7 @@ import { MOCK_SHOP_ITEMS } from "@/lib/mock-data";
 import { POINTS_TO_REFILL, MAX_HEARTS } from "@/constants";
 import { formatPoints } from "@/lib/progress";
 import { toast } from "sonner";
-import { Heart, Zap, Shield, Sparkles, ShoppingCart, Check } from "lucide-react";
+import { Heart, Zap, Shield, ShoppingCart } from "lucide-react";
 
 const ShopPage = () => {
   const { points, hearts, setHearts, spendPoints } = useUserProgress();
@@ -95,8 +95,6 @@ const ShopPage = () => {
         return <Zap className="h-8 w-8 text-yellow-500" />;
       case "FREEZE_STREAK":
         return <Shield className="h-8 w-8 text-blue-500" />;
-      case "COSMETIC":
-        return <Sparkles className="h-8 w-8 text-purple-500" />;
       default:
         return <ShoppingCart className="h-8 w-8" />;
     }
@@ -110,8 +108,6 @@ const ShopPage = () => {
         return "bg-yellow-50 border-yellow-200 hover:border-yellow-400";
       case "FREEZE_STREAK":
         return "bg-blue-50 border-blue-200 hover:border-blue-400";
-      case "COSMETIC":
-        return "bg-purple-50 border-purple-200 hover:border-purple-400";
       default:
         return "bg-gray-50";
     }
