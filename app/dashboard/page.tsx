@@ -81,7 +81,7 @@ export default function DashboardPage() {
       if (profileError) throw profileError;
 
       // Type assertion for profile data
-      type ProfileRow = { id: string; name: string; email: string };
+      type ProfileRow = { id: string; username: string; email: string };
       const profiles = (studentProfiles || []) as ProfileRow[];
 
       if (profiles.length === 0) {
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           hadith_completed: hadithCompleted,
           hadith_avg_score: Math.round(hadithAvgScore),
           iqro_completed: iqroCompleted,
-          last_active: studentProgress?.last_active_date || null,
+          last_active: studentProgress?.last_login_date || null,
         };
       });
 
