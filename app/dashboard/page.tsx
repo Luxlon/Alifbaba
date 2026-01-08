@@ -774,11 +774,11 @@ export default function DashboardPage() {
           <div className="mt-6 sm:mt-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-6 text-white">
             <h4 className="font-bold text-lg mb-2">🔗 Kode Pengajar</h4>
             <p className="text-sm opacity-90 mb-4">
-              Bagikan kode ini ke siswa agar mereka terhubung dengan akun kamu
+              Bagikan kode ini ke siswa agar mereka terhubung dengan akun kamu saat mendaftar
             </p>
             <div className="flex items-center gap-3">
               <code className="bg-white/20 px-4 py-2 rounded-lg font-mono text-lg">
-                {session?.userId.substring(0, 8).toUpperCase()}
+                {session?.userId.slice(-4).toUpperCase()}
               </code>
               <Button
                 variant="ghost"
@@ -786,7 +786,7 @@ export default function DashboardPage() {
                 className="text-white hover:bg-white/20"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    session?.userId.substring(0, 8).toUpperCase() || ""
+                    session?.userId.slice(-4).toUpperCase() || ""
                   );
                   toast.success("Kode berhasil disalin!");
                 }}

@@ -26,15 +26,17 @@ export const HeartsModal = () => {
   const handleBuyHearts = async () => {
     if (safePoints < POINTS_TO_REFILL) {
       toast.error("Poin tidak cukup!", {
-        description: `Butuh ${POINTS_TO_REFILL} poin untuk membeli nyawa.`,
+        description: `Butuh ${POINTS_TO_REFILL} poin untuk membeli 1 nyawa.`,
       });
       return;
     }
 
     const success = await spendPoints(POINTS_TO_REFILL);
     if (success) {
-      await setHearts(MAX_HEARTS);
-      toast.success("Nyawa terisi penuh! ❤️");
+      // Beli 1 nyawa saja, bukan full refill
+      const newHearts = Math.min(safeHearts + 1, MAX_HEARTS);
+      await setHearts(newHearts);
+      toast.success("Nyawa +1! ❤️");
       close();
     }
   };
@@ -93,7 +95,7 @@ export const HeartsModal = () => {
               disabled={safePoints < POINTS_TO_REFILL}
             >
               <Heart className="h-5 w-5 mr-2 fill-white" />
-              Beli {MAX_HEARTS} Nyawa ({POINTS_TO_REFILL} 🪙)
+              Beli 1 Nyawa ({POINTS_TO_REFILL} 🪙)
             </Button>
 
             {/* Go to Shop */}

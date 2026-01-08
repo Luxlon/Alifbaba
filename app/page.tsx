@@ -95,7 +95,7 @@ export default async function Home() {
                   variant="outline"
                   className="w-full sm:w-auto text-lg px-8"
                 >
-                  Daftar Gratis
+                  Daftar
                 </Button>
               </Link>
             </div>
@@ -204,7 +204,7 @@ export default async function Home() {
                 variant="secondary"
                 className="text-xl px-12 py-6"
               >
-                Daftar Gratis 🚀
+                Daftar 🚀
               </Button>
             </Link>
             <Link href="/login">

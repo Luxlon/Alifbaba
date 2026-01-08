@@ -180,7 +180,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              variant="secondary"
+              variant={username.trim() && password.trim() ? "primary" : "secondary"}
               size="lg"
               className="w-full text-base sm:text-lg h-12 sm:h-14 mt-2"
               disabled={isLoading}

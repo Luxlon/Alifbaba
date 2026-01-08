@@ -26,6 +26,7 @@ interface UserProgressWithProfile {
   profiles: {
     username: string;
     role: string;
+    teacher_id: string | null;
   } | null;
 }
 
@@ -42,6 +43,20 @@ const LeaderboardPage = () => {
     const supabase = createClient();
 
     try {
+      // First, get current user's teacher_id if they are a student
+      let currentUserTeacherId: string | null = null;
+      if (session) {
+        const { data: currentProfile } = await supabase
+          .from("profiles")
+          .select("teacher_id, role")
+          .eq("id", session.userId)
+          .single();
+        
+        if (currentProfile && currentProfile.role === "student") {
+          currentUserTeacherId = currentProfile.teacher_id;
+        }
+      }
+
       // Fetch top 50 users by XP from user_progress joined with profiles (only students)
       const { data: progressData, error } = await supabase
         .from("user_progress")
@@ -53,7 +68,8 @@ const LeaderboardPage = () => {
           name,
           profiles!user_progress_user_id_fkey (
             username,
-            role
+            role,
+            teacher_id
           )
         `
         )
@@ -65,9 +81,15 @@ const LeaderboardPage = () => {
         // Cast to proper type
         const typedData = progressData as unknown as UserProgressWithProfile[];
         
-        // Filter only students and take top 50
+        // Filter only students from the same teacher (if current user has a teacher)
         const studentData = typedData.filter((item) => {
-          return item.profiles?.role === "student";
+          if (item.profiles?.role !== "student") return false;
+          // If current user has a teacher, only show students with same teacher
+          if (currentUserTeacherId) {
+            return item.profiles?.teacher_id === currentUserTeacherId;
+          }
+          // If current user has no teacher, show all students without teacher
+          return true;
         }).slice(0, 50);
 
         const entries: LeaderboardEntry[] = studentData.map((item, index) => {

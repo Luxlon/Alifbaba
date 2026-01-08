@@ -322,7 +322,7 @@ export default function AdminPage() {
 
       if (profileError) throw profileError;
 
-      // Create user_progress entry
+      // Create user_progress entry (without last_active_date so daily reward shows on first login)
       const { error: progressError } = await (supabase
         .from("user_progress") as ReturnType<typeof supabase.from>)
         .insert({
@@ -330,7 +330,7 @@ export default function AdminPage() {
           name: formData.username,
           hearts: 5,
           xp: 0,
-          points: 0,
+          points: 100,
           streak: 0,
         });
 
@@ -929,15 +929,15 @@ export default function AdminPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Opsional)</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
+                  id="username"
+                  type="text"
+                  value={formData.username}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({ ...formData, username: e.target.value })
                   }
-                  placeholder="email@gmail.com"
+                  placeholder="Username untuk login"
                   disabled={isCreating}
                 />
               </div>
@@ -951,6 +951,19 @@ export default function AdminPage() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   placeholder="Minimal 4 karakter"
+                  disabled={isCreating}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (Opsional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="email@gmail.com"
                   disabled={isCreating}
                 />
               </div>

@@ -43,7 +43,7 @@ export const userProgressService = {
       xp: row.xp,
       points: row.points,
       streak: row.streak,
-      lastLoginDate: row.last_active_date || new Date().toISOString().split("T")[0],
+      lastLoginDate: row.last_active_date || "",
       createdAt: row.created_at,
     } : null;
   },
@@ -59,7 +59,7 @@ export const userProgressService = {
       xp: 0,
       points: 100,
       streak: 0,
-      last_active_date: new Date().toISOString().split("T")[0],
+      // Don't set last_active_date so daily reward shows on first login
     };
 
     const { data, error } = await supabase
@@ -83,7 +83,7 @@ export const userProgressService = {
       xp: row.xp,
       points: row.points,
       streak: row.streak,
-      lastLoginDate: row.last_active_date || new Date().toISOString().split("T")[0],
+      lastLoginDate: row.last_active_date || "",
       createdAt: row.created_at,
     } : null;
   },

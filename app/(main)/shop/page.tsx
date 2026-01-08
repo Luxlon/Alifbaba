@@ -272,66 +272,6 @@ const ShopPage = () => {
             ))}
           </div>
         </section>
-
-        {/* Cosmetics Section */}
-        <section>
-          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
-            Kosmetik
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {MOCK_SHOP_ITEMS.filter((item) => item.type === "COSMETIC").map(
-              (item) => {
-                const isPurchased = purchasedItems.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className={`
-                      border-2 rounded-lg sm:rounded-xl p-4 sm:p-6 transition-all active:scale-[0.98]
-                      ${isPurchased ? "bg-green-50 border-green-300" : getItemBg(item.type)}
-                    `}
-                  >
-                    <div className="flex items-start gap-3 sm:gap-4">
-                      <div className="bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-sm">
-                        {React.cloneElement(getItemIcon(item.type) as React.ReactElement, {
-                          className: "h-6 w-6 sm:h-8 sm:w-8"
-                        })}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base sm:text-lg mb-1 truncate">{item.name}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
-                          {item.description}
-                        </p>
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-1">
-                            <span className="text-lg sm:text-xl">🪙</span>
-                            <span className="font-bold text-base sm:text-lg">{item.price}</span>
-                          </div>
-                          {isPurchased ? (
-                            <div className="flex items-center gap-1 text-green-600 font-medium text-xs sm:text-sm">
-                              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-                              Dimiliki
-                            </div>
-                          ) : (
-                            <Button
-                              variant={points >= item.price ? "success" : "default"}
-                              size="sm"
-                              className="h-7 sm:h-8 text-xs sm:text-sm"
-                              onClick={() => handlePurchase(item)}
-                              disabled={points < item.price}
-                            >
-                              {points < item.price ? "Kurang" : "Beli"}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-            )}
-          </div>
-        </section>
       </FeedWrapper>
     </div>
   );

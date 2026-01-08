@@ -201,22 +201,6 @@ export const MOCK_SHOP_ITEMS: ShopItem[] = [
     iconUrl: "/shop/freeze.svg",
     duration: 1440, // 24 hours in minutes
   },
-  {
-    id: "mascot-blue",
-    name: "Maskot Biru",
-    description: "Ubah warna maskot menjadi biru",
-    price: 200,
-    type: "COSMETIC",
-    iconUrl: "/shop/mascot-blue.svg",
-  },
-  {
-    id: "mascot-green",
-    name: "Maskot Hijau",
-    description: "Ubah warna maskot menjadi hijau",
-    price: 200,
-    type: "COSMETIC",
-    iconUrl: "/shop/mascot-green.svg",
-  },
 ];
 
 // Mock Quests (Daily & Achievements)

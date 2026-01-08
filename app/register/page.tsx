@@ -14,6 +14,7 @@ import {
   User,
   ArrowLeft,
   BookOpen,
+  Link2,
 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -21,6 +22,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [teacherCode, setTeacherCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,6 +68,28 @@ export default function RegisterPage() {
         return;
       }
 
+      // Find teacher by referral code (last 4 characters of teacher's ID)
+      let teacherId: string | null = null;
+      if (teacherCode.trim()) {
+        const { data: teachers } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("role", "teacher");
+        
+        if (teachers && teachers.length > 0) {
+          const matchedTeacher = teachers.find(
+            (t) => t.id.slice(-4).toUpperCase() === teacherCode.trim().toUpperCase()
+          );
+          if (matchedTeacher) {
+            teacherId = matchedTeacher.id;
+          } else {
+            toast.error("Kode guru tidak ditemukan. Periksa kembali kode yang dimasukkan.");
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
+
       // Generate new user ID
       const newUserId = crypto.randomUUID();
 
@@ -78,6 +102,7 @@ export default function RegisterPage() {
           password: password,
           email: email || null,
           role: "student",
+          teacher_id: teacherId,
           is_active: true,
         });
 
@@ -88,7 +113,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Create user_progress entry
+      // Create user_progress entry (without last_active_date so daily reward shows)
       const { error: progressError } = await (supabase
         .from("user_progress") as ReturnType<typeof supabase.from>)
         .insert({
@@ -96,7 +121,7 @@ export default function RegisterPage() {
           name: username.toLowerCase().trim(),
           hearts: 5,
           xp: 0,
-          points: 0,
+          points: 100,
           streak: 0,
         });
 
@@ -292,10 +317,38 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Teacher Code Field (Optional) */}
+            <div className="space-y-2">
+              <label
+                htmlFor="teacherCode"
+                className="block text-sm font-medium text-neutral-700"
+              >
+                Kode Guru (Opsional)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Link2 className="h-5 w-5 text-neutral-400" />
+                </div>
+                <input
+                  id="teacherCode"
+                  type="text"
+                  value={teacherCode}
+                  onChange={(e) => setTeacherCode(e.target.value.toUpperCase())}
+                  placeholder="Masukkan 4 digit kode guru"
+                  maxLength={4}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base uppercase"
+                  disabled={isLoading}
+                />
+              </div>
+              <p className="text-xs text-neutral-500">
+                Minta kode guru dari pengajar untuk terhubung dengannya
+              </p>
+            </div>
+
             {/* Submit Button */}
             <Button
               type="submit"
-              variant="secondary"
+              variant={username.trim() && password.trim() && confirmPassword.trim() && password === confirmPassword ? "primary" : "secondary"}
               size="lg"
               className="w-full text-base sm:text-lg h-12 sm:h-14 mt-2"
               disabled={isLoading}
