@@ -142,6 +142,13 @@ export default function RegisterPage() {
       };
       setSession(sessionData);
 
+      // Clear daily claim key so streak modal shows on first login
+      try {
+        localStorage.removeItem("alifbaba_daily_claim");
+      } catch {
+        // Ignore localStorage errors
+      }
+
       toast.success(`Selamat datang di AlifBaBa, ${username}! 🎉`);
       
       // Redirect to learn page
@@ -227,31 +234,6 @@ export default function RegisterPage() {
                   className="w-full pl-10 pr-4 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base"
                   disabled={isLoading}
                   autoComplete="username"
-                />
-              </div>
-            </div>
-
-            {/* Email Field (Optional) */}
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-neutral-700"
-              >
-                Email (Opsional)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-neutral-400" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@gmail.com"
-                  className="w-full pl-10 pr-4 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-base"
-                  disabled={isLoading}
-                  autoComplete="email"
                 />
               </div>
             </div>

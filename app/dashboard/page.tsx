@@ -622,7 +622,7 @@ export default function DashboardPage() {
                 <thead className="bg-neutral-50">
                   <tr>
                     <th
-                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
+                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100 sticky left-0 bg-neutral-50 z-10 min-w-[160px]"
                       onClick={() => handleSort("student_name")}
                     >
                       <span className="flex items-center gap-1">
@@ -636,7 +636,7 @@ export default function DashboardPage() {
                       </span>
                     </th>
                     <th
-                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
+                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100 min-w-[70px]"
                       onClick={() => handleSort("total_xp")}
                     >
                       <span className="flex items-center gap-1">
@@ -649,17 +649,17 @@ export default function DashboardPage() {
                           ))}
                       </span>
                     </th>
-                    <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider min-w-[100px]">
                       Hijaiyah
                     </th>
-                    <th className="hidden lg:table-cell px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider min-w-[100px]">
                       Kisah Nabi
                     </th>
-                    <th className="hidden lg:table-cell px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider min-w-[100px]">
                       Hadist
                     </th>
                     <th
-                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
+                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-100 min-w-[80px]"
                       onClick={() => handleSort("current_streak")}
                     >
                       <span className="flex items-center gap-1">
@@ -680,8 +680,8 @@ export default function DashboardPage() {
                       key={student.student_id}
                       className="hover:bg-neutral-50"
                     >
-                      <td className="px-4 sm:px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 sm:px-6 py-4 sticky left-0 bg-white z-10">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-emerald-700 font-bold text-sm sm:text-base">
                               {student.student_name.charAt(0).toUpperCase()}
@@ -705,51 +705,51 @@ export default function DashboardPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell px-4 sm:px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
                               {student.hijaiyah_completed}/29
                             </span>
-                            <span className="text-xs text-neutral-500">
+                            <span className="text-xs text-neutral-500 hidden sm:inline">
                               ({student.hijaiyah_avg_score}%)
                             </span>
                           </div>
                           <Progress
                             value={(student.hijaiyah_completed / 29) * 100}
-                            className="h-1.5 w-24"
+                            className="h-1.5 w-16 sm:w-24"
                           />
                         </div>
                       </td>
-                      <td className="hidden lg:table-cell px-4 sm:px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
                               {student.stories_completed}/7
                             </span>
-                            <span className="text-xs text-neutral-500">
+                            <span className="text-xs text-neutral-500 hidden sm:inline">
                               ({student.stories_avg_score}%)
                             </span>
                           </div>
                           <Progress
                             value={(student.stories_completed / 7) * 100}
-                            className="h-1.5 w-24"
+                            className="h-1.5 w-16 sm:w-24"
                           />
                         </div>
                       </td>
-                      <td className="hidden lg:table-cell px-4 sm:px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
                               {student.hadith_completed}/20
                             </span>
-                            <span className="text-xs text-neutral-500">
+                            <span className="text-xs text-neutral-500 hidden sm:inline">
                               ({student.hadith_avg_score}%)
                             </span>
                           </div>
                           <Progress
                             value={(student.hadith_completed / 20) * 100}
-                            className="h-1.5 w-24"
+                            className="h-1.5 w-16 sm:w-24"
                           />
                         </div>
                       </td>

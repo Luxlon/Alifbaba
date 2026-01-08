@@ -361,6 +361,7 @@ export default function AdminPage() {
       const updateData: any = {
         email: formData.email || null,
         is_active: formData.is_active,
+        role: formData.role,
       };
 
       // Update password if provided
@@ -368,9 +369,10 @@ export default function AdminPage() {
         updateData.password = formData.password;
       }
 
+      // Handle teacher_id based on role
       if (formData.role === "student" && formData.teacher_id) {
         updateData.teacher_id = formData.teacher_id;
-      } else if (formData.role !== "student") {
+      } else {
         updateData.teacher_id = null;
       }
 
@@ -639,32 +641,33 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
         {/* Header */}
         <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                  <Shield className="h-5 w-5 text-white" />
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-14 sm:h-16">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-slate-800">
+                  <h1 className="text-sm sm:text-lg font-bold text-slate-800">
                     Admin Panel
                   </h1>
-                  <p className="text-xs text-slate-500">
-                    {profile?.username} • {profile?.email}
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate max-w-[120px] sm:max-w-none">
+                    {profile?.username}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="h-8 w-8 sm:h-10 sm:w-10"
                       onClick={() => fetchData(true)}
                       disabled={isRefreshing}
                     >
                       <RefreshCw
-                        className={`h-4 w-4 ${
+                        className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
                           isRefreshing ? "animate-spin" : ""
                         }`}
                       />
@@ -676,10 +679,10 @@ export default function AdminPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => signOut()}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                 >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Keluar
+                  <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Keluar</span>
                 </Button>
               </div>
             </div>
@@ -814,22 +817,24 @@ export default function AdminPage() {
 
                     {activeTab !== "progress" && (
                       <Button
+                        size="sm"
+                        className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4"
                         onClick={() => {
                           resetForm();
                           setShowCreateModal(true);
                         }}
                       >
-                        <UserPlus className="h-4 w-4 mr-1.5" />
-                        Tambah User
+                        <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                        <span className="hidden sm:inline">Tambah User</span>
                       </Button>
                     )}
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                          <Download className="h-4 w-4 mr-1.5" />
-                          Export
-                          <ChevronDown className="h-4 w-4 ml-1.5" />
+                        <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4">
+                          <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                          <span className="hidden sm:inline">Export</span>
+                          <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -1031,6 +1036,29 @@ export default function AdminPage() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
+                <Label htmlFor="edit-role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(v) =>
+                    setFormData({
+                      ...formData,
+                      role: v as "student" | "teacher" | "superadmin",
+                      teacher_id: v !== "student" ? "" : formData.teacher_id,
+                    })
+                  }
+                  disabled={isUpdating}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">👦 Siswa</SelectItem>
+                    <SelectItem value="teacher">👨‍🏫 Pengajar</SelectItem>
+                    <SelectItem value="superadmin">👑 Superadmin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input
                   id="edit-email"
@@ -1183,24 +1211,24 @@ function UsersTable({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Guru</TableHead>
-            <TableHead className="text-center">Status</TableHead>
+            <TableHead className="sticky left-0 bg-white z-10 min-w-[80px]">User</TableHead>
+            <TableHead className="min-w-[80px]">Role</TableHead>
+            <TableHead className="min-w-[100px]">Guru</TableHead>
+            <TableHead className="text-center min-w-[80px]">Status</TableHead>
             <TableHead className="text-center w-[80px]">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.map((u) => (
             <TableRow key={u.id}>
-              <TableCell>
-                <div className="flex items-center gap-3">
+              <TableCell className="sticky left-0 bg-white z-10">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0 ${
                       u.role === "superadmin"
                         ? "bg-slate-700"
                         : u.role === "teacher"
@@ -1210,9 +1238,9 @@ function UsersTable({
                   >
                     {u.username?.charAt(0).toUpperCase() || "?"}
                   </div>
-                  <div>
-                    <p className="font-medium">{u.username}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{u.username}</p>
+                    <p className="text-xs text-muted-foreground truncate hidden sm:block">
                       {u.email || `@${u.username}`}
                     </p>
                   </div>
@@ -1227,13 +1255,13 @@ function UsersTable({
                       ? "secondary"
                       : "outline"
                   }
-                  className={
+                  className={`text-xs ${
                     u.role === "superadmin"
                       ? "bg-slate-800"
                       : u.role === "teacher"
                       ? "bg-amber-100 text-amber-700 hover:bg-amber-100"
                       : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                  }
+                  }`}
                 >
                   {u.role === "superadmin"
                     ? "Admin"
@@ -1242,17 +1270,17 @@ function UsersTable({
                     : "Siswa"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="text-muted-foreground text-sm">
                 {u.teacher_name || "-"}
               </TableCell>
               <TableCell className="text-center">
                 <Badge
                   variant={u.is_active ? "default" : "destructive"}
-                  className={
+                  className={`text-xs ${
                     u.is_active
                       ? "bg-green-100 text-green-700 hover:bg-green-100"
                       : ""
-                  }
+                  }`}
                 >
                   {u.is_active ? "Aktif" : "Nonaktif"}
                 </Badge>
@@ -1260,7 +1288,7 @@ function UsersTable({
               <TableCell className="text-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -1304,44 +1332,44 @@ function ProgressTable({ progress }: { progress: ProgressData[] }) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nama</TableHead>
-            <TableHead className="text-center">XP</TableHead>
-            <TableHead className="text-center">Hearts</TableHead>
-            <TableHead className="text-center">Streak</TableHead>
-            <TableHead className="text-center">Hijaiyah</TableHead>
-            <TableHead className="text-center">Stories</TableHead>
-            <TableHead className="text-center">Hadith</TableHead>
-            <TableHead className="text-center">Iqro</TableHead>
+            <TableHead className="sticky left-0 bg-white z-10 min-w-[140px]">Nama</TableHead>
+            <TableHead className="text-center min-w-[70px]">XP</TableHead>
+            <TableHead className="text-center min-w-[70px]">Hearts</TableHead>
+            <TableHead className="text-center min-w-[70px]">Streak</TableHead>
+            <TableHead className="text-center min-w-[80px]">Hijaiyah</TableHead>
+            <TableHead className="text-center min-w-[70px]">Stories</TableHead>
+            <TableHead className="text-center min-w-[70px]">Hadith</TableHead>
+            <TableHead className="text-center min-w-[60px]">Iqro</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {progress.map((p) => (
             <TableRow key={p.id}>
-              <TableCell className="font-medium">{p.student_name}</TableCell>
+              <TableCell className="font-medium sticky left-0 bg-white z-10 text-sm">{p.student_name}</TableCell>
               <TableCell className="text-center">
                 <Badge
                   variant="secondary"
-                  className="bg-amber-100 text-amber-700"
+                  className="bg-amber-100 text-amber-700 text-xs"
                 >
                   {p.xp} XP
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">{p.hearts}/5 ❤️</TableCell>
-              <TableCell className="text-center">{p.streak} 🔥</TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center text-sm">{p.hearts}/5 ❤️</TableCell>
+              <TableCell className="text-center text-sm">{p.streak} 🔥</TableCell>
+              <TableCell className="text-center text-sm">
                 {p.hijaiyah_completed}/28
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center text-sm">
                 {p.stories_completed}/7
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center text-sm">
                 {p.hadith_completed}/20
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center text-sm">
                 {p.iqro_completed}/6
               </TableCell>
             </TableRow>
