@@ -29,6 +29,8 @@ const buttonVariants = cva(
         hijaiyahOutline: "border-2 border-emerald-300 text-emerald-600 bg-white hover:bg-emerald-50 hover:border-emerald-400",
         primary: "bg-sky-500 text-white hover:bg-sky-600 shadow-md hover:shadow-lg",
         primaryOutline: "border-2 border-sky-300 text-sky-600 bg-white hover:bg-sky-50 hover:border-sky-400",
+        sidebar: "bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700",
+        sidebarOutline: "bg-sky-500/15 text-sky-500 border-sky-300 border-2 hover:bg-sky-500/20",
       },
       size: {
         default: "h-10 px-4 py-2",

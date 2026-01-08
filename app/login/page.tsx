@@ -61,7 +61,9 @@ export default function LoginPage() {
         .eq("username", username.toLowerCase().trim())
         .single();
       
-      const role = profileData?.role || "student";
+      type ProfileRole = { role: "student" | "teacher" | "superadmin" };
+      const profile = profileData as ProfileRole | null;
+      const role = profile?.role || "student";
       let targetUrl = "/learn";
       if (role === "superadmin") {
         targetUrl = "/admin";

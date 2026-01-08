@@ -73,7 +73,6 @@ export const AudioPlayer = ({
     if (audioRef.current) {
       audioRef.current.playbackRate = rate;
     }
-    setShowSpeedMenu(false);
   };
 
   // Full variant with speed controls
