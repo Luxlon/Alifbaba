@@ -52,8 +52,11 @@ const LeaderboardPage = () => {
           .eq("id", session.userId)
           .single();
         
-        if (currentProfile && currentProfile.role === "student") {
-          currentUserTeacherId = currentProfile.teacher_id;
+        type ProfileData = { teacher_id: string | null; role: string };
+        const typedProfile = currentProfile as ProfileData | null;
+        
+        if (typedProfile && typedProfile.role === "student") {
+          currentUserTeacherId = typedProfile.teacher_id;
         }
       }
 

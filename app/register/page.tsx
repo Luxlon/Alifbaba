@@ -76,8 +76,11 @@ export default function RegisterPage() {
           .select("id")
           .eq("role", "teacher");
         
-        if (teachers && teachers.length > 0) {
-          const matchedTeacher = teachers.find(
+        type TeacherData = { id: string };
+        const typedTeachers = teachers as TeacherData[] | null;
+        
+        if (typedTeachers && typedTeachers.length > 0) {
+          const matchedTeacher = typedTeachers.find(
             (t) => t.id.slice(-4).toUpperCase() === teacherCode.trim().toUpperCase()
           );
           if (matchedTeacher) {
