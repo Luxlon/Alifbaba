@@ -13,24 +13,28 @@ import { toast } from "sonner";
 import { Heart, Zap, Shield, Sparkles, ShoppingCart, Check } from "lucide-react";
 
 const ShopPage = () => {
-  const { points, hearts, maxHearts, addHearts, spendPoints } = useUserProgress();
+  const { points, hearts, setHearts, spendPoints } = useUserProgress();
   const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
   const [isPurchasing, setIsPurchasing] = useState(false);
+
+  // Ensure values are valid numbers
+  const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+  const safePoints = typeof points === 'number' && !isNaN(points) ? points : 0;
 
   const handlePurchase = async (item: typeof MOCK_SHOP_ITEMS[0]) => {
     if (isPurchasing) return;
     
     // Check if user has enough points
-    if (points < item.price) {
+    if (safePoints < item.price) {
       toast.error("Poin tidak cukup!", {
-        description: `Kamu membutuhkan ${item.price} poin, tapi hanya punya ${points} poin.`,
+        description: `Kamu membutuhkan ${item.price} poin, tapi hanya punya ${safePoints} poin.`,
       });
       return;
     }
 
     // Special handling for hearts refill
     if (item.type === "HEARTS_REFILL") {
-      if (hearts === maxHearts) {
+      if (safeHearts >= MAX_HEARTS) {
         toast.error("Nyawa sudah penuh!", {
           description: "Kamu tidak perlu membeli isi ulang nyawa sekarang.",
         });
@@ -54,10 +58,11 @@ const ShopPage = () => {
       
       if (success) {
         // Apply item effect
-        if (item.type === "HEARTS_REFILL" && item.value) {
-          await addHearts(item.value);
+        if (item.type === "HEARTS_REFILL") {
+          // Always give full 5 hearts
+          await setHearts(MAX_HEARTS);
           toast.success("Berhasil! ❤️", {
-            description: `Nyawa berhasil diisi ulang! +${item.value} nyawa`,
+            description: `Nyawa penuh! Kamu sekarang punya ${MAX_HEARTS} nyawa`,
           });
         } else if (item.type === "DOUBLE_XP") {
           toast.success("Berhasil! ⚡", {
@@ -113,20 +118,20 @@ const ShopPage = () => {
   };
 
   // Quick buy hearts
-  const handleQuickRefill = () => {
-    if (hearts === maxHearts) {
+  const handleQuickRefill = async () => {
+    if (safeHearts >= MAX_HEARTS) {
       toast.error("Nyawa sudah penuh!");
       return;
     }
-    if (points < POINTS_TO_REFILL) {
+    if (safePoints < POINTS_TO_REFILL) {
       toast.error("Poin tidak cukup!", {
         description: `Butuh ${POINTS_TO_REFILL} poin untuk isi ulang.`,
       });
       return;
     }
-    const success = spendPoints(POINTS_TO_REFILL);
+    const success = await spendPoints(POINTS_TO_REFILL);
     if (success) {
-      addHearts(MAX_HEARTS - hearts);
+      await setHearts(MAX_HEARTS);
       toast.success("Nyawa terisi penuh! ❤️");
     }
   };
@@ -138,18 +143,18 @@ const ShopPage = () => {
         <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-white p-3 sm:p-4 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl sm:text-2xl">🪙</span>
-            <span className="text-2xl sm:text-3xl font-bold">{formatPoints(points)}</span>
+            <span className="text-2xl sm:text-3xl font-bold">{formatPoints(safePoints)}</span>
           </div>
           <div className="flex items-center gap-1">
-            {Array.from({ length: maxHearts }).map((_, i) => (
+            {Array.from({ length: MAX_HEARTS }).map((_, i) => (
               <Heart
                 key={i}
                 className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                  i < hearts ? "text-white fill-white" : "text-white/40"
+                  i < safeHearts ? "text-white fill-white" : "text-white/40"
                 }`}
               />
             ))}
-            {hearts < maxHearts && (
+            {safeHearts < MAX_HEARTS && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -170,24 +175,24 @@ const ShopPage = () => {
             <span className="text-2xl">🪙</span>
             Poin Kamu
           </h3>
-          <span className="text-4xl font-bold">{formatPoints(points)}</span>
+          <span className="text-4xl font-bold">{formatPoints(safePoints)}</span>
         </div>
 
         {/* Hearts Status */}
         <div className="hidden lg:block border-2 rounded-xl p-4">
           <h3 className="font-bold mb-3">Status Nyawa</h3>
           <div className="flex items-center gap-2 mb-3">
-            {Array.from({ length: maxHearts }).map((_, i) => (
+            {Array.from({ length: MAX_HEARTS }).map((_, i) => (
               <Heart
                 key={i}
                 className={`h-6 w-6 ${
-                  i < hearts ? "text-red-500 fill-red-500" : "text-gray-300"
+                  i < safeHearts ? "text-red-500 fill-red-500" : "text-gray-300"
                 }`}
               />
             ))}
           </div>
-          <Progress value={(hearts / maxHearts) * 100} className="h-2 mb-3" />
-          {hearts < maxHearts && (
+          <Progress value={(safeHearts / MAX_HEARTS) * 100} className="h-2 mb-3" />
+          {safeHearts < MAX_HEARTS && (
             <Button
               variant="danger"
               size="sm"
@@ -252,13 +257,13 @@ const ShopPage = () => {
                         <span className="font-bold text-base sm:text-lg">{item.price}</span>
                       </div>
                       <Button
-                        variant={points >= item.price ? "primary" : "default"}
+                        variant={safePoints >= item.price ? "primary" : "default"}
                         size="sm"
                         className="h-7 sm:h-8 text-xs sm:text-sm"
                         onClick={() => handlePurchase(item)}
-                        disabled={points < item.price}
+                        disabled={safePoints < item.price}
                       >
-                        {points < item.price ? "Kurang" : "Beli"}
+                        {safePoints < item.price ? "Kurang" : "Beli"}
                       </Button>
                     </div>
                   </div>

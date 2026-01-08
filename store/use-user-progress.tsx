@@ -7,15 +7,20 @@ interface UserProgressStore extends UserProgress {
   isLoading: boolean;
   isInitialized: boolean;
 
+  // Hearts regeneration
+  lastHeartRegenTime: number | null;
+
   // Actions
   addHearts: (amount: number) => Promise<void>;
   removeHearts: (amount: number) => Promise<void>;
+  setHearts: (amount: number) => Promise<void>;
   addXp: (amount: number) => Promise<void>;
   addPoints: (amount: number) => Promise<void>;
   spendPoints: (amount: number) => Promise<boolean>;
   updateStreak: () => Promise<void>;
   resetHearts: () => Promise<void>;
   setUserData: (data: Partial<UserProgress>) => void;
+  checkHeartRegen: () => Promise<void>;
 
   // Supabase operations
   loadFromSupabase: (userId: string) => Promise<void>;
@@ -24,6 +29,7 @@ interface UserProgressStore extends UserProgress {
 }
 
 const MAX_HEARTS = 5;
+const HEART_REGEN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Get today's date as string (YYYY-MM-DD)
 const getTodayString = () => {
@@ -42,7 +48,8 @@ const isYesterday = (dateString: string) => {
   return dateString === yesterday.toISOString().split("T")[0];
 };
 
-// Initial/default state
+// Initial/default state - use empty strings to avoid hydration mismatch
+// Real values will be set after client-side initialization
 const initialState = {
   userId: "",
   name: "Pelajar Alifbaba",
@@ -52,10 +59,11 @@ const initialState = {
   xp: 0,
   points: 100,
   streak: 0,
-  lastLoginDate: getTodayString(),
-  createdAt: new Date().toISOString(),
+  lastLoginDate: "", // Will be set on client
+  createdAt: "", // Will be set on client
   isLoading: false,
   isInitialized: false,
+  lastHeartRegenTime: null as number | null,
 };
 
 export const useUserProgress = create<UserProgressStore>()((set, get) => ({
@@ -66,7 +74,8 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return;
 
-    const newHearts = Math.min(state.hearts + amount, state.maxHearts);
+    const currentHearts = typeof state.hearts === 'number' && !isNaN(state.hearts) ? state.hearts : 0;
+    const newHearts = Math.min(currentHearts + amount, MAX_HEARTS);
     set({ hearts: newHearts });
 
     // Update Supabase
@@ -77,7 +86,19 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return;
 
-    const newHearts = Math.max(state.hearts - amount, 0);
+    const currentHearts = typeof state.hearts === 'number' && !isNaN(state.hearts) ? state.hearts : 0;
+    const newHearts = Math.max(currentHearts - amount, 0);
+    set({ hearts: newHearts });
+
+    // Update Supabase
+    await userProgressService.update(state.userId, { hearts: newHearts });
+  },
+
+  setHearts: async (amount: number) => {
+    const state = get();
+    if (!state.userId) return;
+
+    const newHearts = Math.max(0, Math.min(amount, MAX_HEARTS));
     set({ hearts: newHearts });
 
     // Update Supabase
@@ -88,7 +109,8 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return;
 
-    const newXp = state.xp + amount;
+    const currentXp = typeof state.xp === 'number' && !isNaN(state.xp) ? state.xp : 0;
+    const newXp = currentXp + amount;
     set({ xp: newXp });
 
     // Update Supabase
@@ -99,7 +121,8 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return;
 
-    const newPoints = state.points + amount;
+    const currentPoints = typeof state.points === 'number' && !isNaN(state.points) ? state.points : 0;
+    const newPoints = currentPoints + amount;
     set({ points: newPoints });
 
     // Update Supabase
@@ -110,11 +133,12 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return false;
 
-    if (state.points < amount) {
+    const currentPoints = typeof state.points === 'number' && !isNaN(state.points) ? state.points : 0;
+    if (currentPoints < amount) {
       return false;
     }
 
-    const newPoints = state.points - amount;
+    const newPoints = currentPoints - amount;
     set({ points: newPoints });
 
     // Update Supabase
@@ -158,10 +182,37 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
     const state = get();
     if (!state.userId) return;
 
-    set({ hearts: state.maxHearts });
+    set({ hearts: MAX_HEARTS });
 
     // Update Supabase
-    await userProgressService.update(state.userId, { hearts: state.maxHearts });
+    await userProgressService.update(state.userId, { hearts: MAX_HEARTS });
+  },
+
+  // Check if hearts should be regenerated (1 heart per 5 minutes)
+  checkHeartRegen: async () => {
+    const state = get();
+    if (!state.userId) return;
+    
+    const currentHearts = typeof state.hearts === 'number' && !isNaN(state.hearts) ? state.hearts : 0;
+    
+    // If already at max hearts, no need to regenerate
+    if (currentHearts >= MAX_HEARTS) {
+      set({ lastHeartRegenTime: Date.now() });
+      return;
+    }
+
+    const now = Date.now();
+    const lastRegen = state.lastHeartRegenTime || now;
+    const timeSinceLastRegen = now - lastRegen;
+    const heartsToRegen = Math.floor(timeSinceLastRegen / HEART_REGEN_INTERVAL_MS);
+
+    if (heartsToRegen > 0) {
+      const newHearts = Math.min(currentHearts + heartsToRegen, MAX_HEARTS);
+      set({ hearts: newHearts, lastHeartRegenTime: now });
+      
+      // Update Supabase
+      await userProgressService.update(state.userId, { hearts: newHearts });
+    }
   },
 
   setUserData: (data: Partial<UserProgress>) => {
@@ -176,18 +227,25 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
       const data = await userProgressService.fetch(userId);
       
       if (data) {
+        // Ensure hearts is a valid number
+        const hearts = typeof data.hearts === 'number' && !isNaN(data.hearts) ? data.hearts : MAX_HEARTS;
+        const xp = typeof data.xp === 'number' && !isNaN(data.xp) ? data.xp : 0;
+        const points = typeof data.points === 'number' && !isNaN(data.points) ? data.points : 100;
+        const streak = typeof data.streak === 'number' && !isNaN(data.streak) ? data.streak : 0;
+        
         set({
           userId: data.userId,
           name: data.name,
           imageUrl: data.imageUrl,
-          hearts: data.hearts,
-          maxHearts: data.maxHearts,
-          xp: data.xp,
-          points: data.points,
-          streak: data.streak,
+          hearts: hearts,
+          maxHearts: MAX_HEARTS,
+          xp: xp,
+          points: points,
+          streak: streak,
           lastLoginDate: data.lastLoginDate,
           createdAt: data.createdAt,
           isInitialized: true,
+          lastHeartRegenTime: Date.now(),
         });
       } else {
         // Create initial progress if not exists
@@ -197,14 +255,15 @@ export const useUserProgress = create<UserProgressStore>()((set, get) => ({
             userId: newProgress.userId,
             name: newProgress.name,
             imageUrl: newProgress.imageUrl,
-            hearts: newProgress.hearts,
-            maxHearts: newProgress.maxHearts,
-            xp: newProgress.xp,
-            points: newProgress.points,
-            streak: newProgress.streak,
+            hearts: MAX_HEARTS,
+            maxHearts: MAX_HEARTS,
+            xp: 0,
+            points: 100,
+            streak: 0,
             lastLoginDate: newProgress.lastLoginDate,
             createdAt: newProgress.createdAt,
             isInitialized: true,
+            lastHeartRegenTime: Date.now(),
           });
         }
       }

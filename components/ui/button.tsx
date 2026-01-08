@@ -18,6 +18,17 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Custom variants for app
+        danger: "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg",
+        success: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg",
+        hadith: "bg-purple-500 text-white hover:bg-purple-600 shadow-md hover:shadow-lg",
+        hadithOutline: "border-2 border-purple-300 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-400",
+        story: "bg-amber-500 text-white hover:bg-amber-600 shadow-md hover:shadow-lg",
+        storyOutline: "border-2 border-amber-300 text-amber-600 bg-white hover:bg-amber-50 hover:border-amber-400",
+        hijaiyah: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg",
+        hijaiyahOutline: "border-2 border-emerald-300 text-emerald-600 bg-white hover:bg-emerald-50 hover:border-emerald-400",
+        primary: "bg-sky-500 text-white hover:bg-sky-600 shadow-md hover:shadow-lg",
+        primaryOutline: "border-2 border-sky-300 text-sky-600 bg-white hover:bg-sky-50 hover:border-sky-400",
       },
       size: {
         default: "h-10 px-4 py-2",

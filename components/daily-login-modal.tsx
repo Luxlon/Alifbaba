@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,11 +24,16 @@ const DAILY_REWARDS = [
   { day: 7, xp: 100, points: 50, icon: "🏆" },
 ];
 
+// Key for localStorage to track daily claim
+const DAILY_CLAIM_KEY = "alifbaba_daily_claim";
+
 export const DailyLoginModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 800, height: 600 });
   const [isClaiming, setIsClaiming] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const { session } = useAuth();
   const { 
@@ -40,23 +45,66 @@ export const DailyLoginModal = () => {
     updateStreak 
   } = useUserProgress();
 
+  // Check if reward was already claimed today
+  const wasClaimedToday = useCallback(() => {
+    try {
+      const lastClaim = localStorage.getItem(DAILY_CLAIM_KEY);
+      if (!lastClaim) return false;
+      
+      const today = new Date().toISOString().split("T")[0];
+      return lastClaim === today;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Mark reward as claimed today
+  const markClaimedToday = useCallback(() => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      localStorage.setItem(DAILY_CLAIM_KEY, today);
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  // Set mounted state
   useEffect(() => {
-    // Set window size for confetti
-    setWindowSize({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
+    setIsMounted(true);
+    // Set window size for confetti only on client
+    if (typeof window !== 'undefined') {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    // Only run on client after mount
+    if (!isMounted) return;
+
+    // Only check once per session
+    if (hasChecked) return;
 
     // Only check if user is logged in and progress is initialized
     if (!session || !isInitialized) return;
 
-    // Check if user should see daily reward
+    // Check if reward was already claimed today
+    if (wasClaimedToday()) {
+      setHasChecked(true);
+      return;
+    }
+
+    // Check if user should see daily reward (new day)
     const today = new Date().toISOString().split("T")[0];
-    if (lastLoginDate !== today) {
-      // New day - show reward modal
+    if (!lastLoginDate || lastLoginDate !== today) {
+      // New day - show reward modal after delay
       setTimeout(() => setIsOpen(true), 500);
     }
-  }, [lastLoginDate, session, isInitialized]);
+    
+    setHasChecked(true);
+  }, [lastLoginDate, session, isInitialized, hasChecked, wasClaimedToday, isMounted]);
 
   const getCurrentDayReward = () => {
     // Cycle through 7 days
@@ -77,6 +125,9 @@ export const DailyLoginModal = () => {
       await addXp(reward.xp);
       await addPoints(reward.points);
       
+      // Mark as claimed today
+      markClaimedToday();
+      
       // Show confetti
       setShowConfetti(true);
       
@@ -90,6 +141,13 @@ export const DailyLoginModal = () => {
     } finally {
       setIsClaiming(false);
     }
+  };
+
+  // Handle modal close without claiming
+  const handleClose = () => {
+    // Mark as "seen" today even if not claimed
+    markClaimedToday();
+    setIsOpen(false);
   };
 
   // Don't render if not logged in
@@ -109,7 +167,7 @@ export const DailyLoginModal = () => {
         />
       )}
       
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">

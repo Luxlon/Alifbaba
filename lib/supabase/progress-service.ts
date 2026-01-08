@@ -39,11 +39,11 @@ export const userProgressService = {
       name: row.name || "Pelajar AlifBaBa",
       imageUrl: row.image_url || "/profile/default-avatar.svg",
       hearts: row.hearts,
-      maxHearts: row.max_hearts,
+      maxHearts: 5,
       xp: row.xp,
       points: row.points,
       streak: row.streak,
-      lastLoginDate: row.last_login_date || new Date().toISOString().split("T")[0],
+      lastLoginDate: row.last_active_date || new Date().toISOString().split("T")[0],
       createdAt: row.created_at,
     } : null;
   },
@@ -56,12 +56,10 @@ export const userProgressService = {
       user_id: userId,
       name,
       hearts: 5,
-      max_hearts: 5,
       xp: 0,
       points: 100,
       streak: 0,
-      longest_streak: 0,
-      last_login_date: new Date().toISOString().split("T")[0],
+      last_active_date: new Date().toISOString().split("T")[0],
     };
 
     const { data, error } = await supabase
@@ -81,11 +79,11 @@ export const userProgressService = {
       name: row.name || name,
       imageUrl: row.image_url || "/profile/default-avatar.svg",
       hearts: row.hearts,
-      maxHearts: row.max_hearts,
+      maxHearts: 5,
       xp: row.xp,
       points: row.points,
       streak: row.streak,
-      lastLoginDate: row.last_login_date || new Date().toISOString().split("T")[0],
+      lastLoginDate: row.last_active_date || new Date().toISOString().split("T")[0],
       createdAt: row.created_at,
     } : null;
   },
@@ -105,7 +103,7 @@ export const userProgressService = {
       ...(updates.xp !== undefined && { xp: updates.xp }),
       ...(updates.points !== undefined && { points: updates.points }),
       ...(updates.streak !== undefined && { streak: updates.streak }),
-      ...(updates.lastLoginDate !== undefined && { last_login_date: updates.lastLoginDate }),
+      ...(updates.lastLoginDate !== undefined && { last_active_date: updates.lastLoginDate }),
       updated_at: new Date().toISOString(),
     };
 
@@ -193,8 +191,8 @@ export const hijaiyahProgressService = {
         completed: item.completed,
         score: item.score,
         attempts: item.attempts,
-        lastAttemptDate: item.last_attempt_date || "",
-        harakatMastered: item.harakat_mastered || [],
+        lastAttemptDate: "",
+        harakatMastered: [],
       };
     });
 
@@ -204,13 +202,12 @@ export const hijaiyahProgressService = {
   async upsert(userId: string, progress: HijaiyahProgress): Promise<boolean> {
     const payload = {
       user_id: userId,
-      letter_id: progress.letterName, // Use letterName as letter_id (TEXT in database)
+      letter_id: progress.letterId, // Use letterId (TEXT in database)
       letter_name: progress.letterName,
       completed: progress.completed,
       score: progress.score,
       attempts: progress.attempts,
-      last_attempt_date: progress.lastAttemptDate || null,
-      harakat_mastered: progress.harakatMastered,
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase
@@ -254,8 +251,8 @@ export const storyProgressService = {
         completed: item.completed,
         videoWatched: item.video_watched,
         quizScore: item.quiz_score,
-        quizAttempts: item.quiz_attempts,
-        lastAttemptDate: item.last_attempt_date || "",
+        quizAttempts: 0,
+        lastAttemptDate: "",
       };
     });
 
@@ -270,8 +267,7 @@ export const storyProgressService = {
       completed: progress.completed,
       video_watched: progress.videoWatched,
       quiz_score: progress.quizScore,
-      quiz_attempts: progress.quizAttempts,
-      last_attempt_date: progress.lastAttemptDate || null,
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase
@@ -315,9 +311,9 @@ export const hadithProgressService = {
         completed: item.completed,
         audioPlayed: item.audio_played,
         quizScore: item.quiz_score,
-        quizAttempts: item.quiz_attempts,
+        quizAttempts: 0,
         memorized: item.memorized,
-        lastAttemptDate: item.last_attempt_date || "",
+        lastAttemptDate: "",
       };
     });
 
@@ -332,9 +328,8 @@ export const hadithProgressService = {
       completed: progress.completed,
       audio_played: progress.audioPlayed,
       quiz_score: progress.quizScore,
-      quiz_attempts: progress.quizAttempts,
       memorized: progress.memorized,
-      last_attempt_date: progress.lastAttemptDate || null,
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase
@@ -376,7 +371,7 @@ export const iqroProgressService = {
         currentPage: item.current_page,
         totalPages: item.total_pages,
         completed: item.completed,
-        lastReadDate: item.last_read_date || "",
+        lastReadDate: "",
       };
     });
 
@@ -390,7 +385,7 @@ export const iqroProgressService = {
       current_page: progress.currentPage,
       total_pages: progress.totalPages,
       completed: progress.completed,
-      last_read_date: progress.lastReadDate || null,
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase

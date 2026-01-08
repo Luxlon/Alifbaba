@@ -148,7 +148,7 @@ export const ChallengeResult = ({
   return (
     <div
       className={`
-        fixed bottom-0 left-0 right-0 p-6 border-t-4
+        fixed bottom-[60px] lg:bottom-0 left-0 right-0 p-4 sm:p-6 border-t-4 z-40
         ${isCorrect ? "bg-emerald-50 border-emerald-500" : "bg-red-50 border-red-500"}
       `}
     >

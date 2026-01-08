@@ -166,6 +166,11 @@ export interface HadithData {
   category: "Akhlak" | "Ibadah" | "Keluarga" | "Ilmu";
   audioFile: string;
   difficulty: "easy" | "medium" | "hard";
+  quizQuestions?: {
+    question: string;
+    options: string[];
+    correctAnswer: number; // index of correct option
+  }[];
 }
 
 // User stats for profile

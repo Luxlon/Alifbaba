@@ -13,3 +13,14 @@ export const useHeartsModal = create<HeartsModalState>((set) => ({
   openBroken: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
+
+// Hearts regeneration store - tracks last regen time
+type HeartsRegenState = {
+  lastRegenTime: number | null;
+  setLastRegenTime: (time: number) => void;
+};
+
+export const useHeartsRegen = create<HeartsRegenState>((set) => ({
+  lastRegenTime: null,
+  setLastRegenTime: (time: number) => set({ lastRegenTime: time }),
+}));

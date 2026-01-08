@@ -251,7 +251,7 @@ const HadithPage = () => {
 
       {/* Continue Button */}
       {completedCount < totalHadith && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+        <div className="fixed bottom-[60px] lg:bottom-0 left-0 right-0 bg-white border-t p-4 z-40">
           <div className="max-w-4xl mx-auto">
             <Link href={`/hadith/${HADITH_LIST[completedCount]?.id || 1}`}>
               <Button variant="hadith" size="lg" className="w-full">

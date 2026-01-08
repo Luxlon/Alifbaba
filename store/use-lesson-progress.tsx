@@ -122,14 +122,17 @@ export const useLessonProgress = create<LessonProgressStore>()((set, get) => ({
     // Use letterName as key for consistency
     const existing = state.hijaiyahProgress[letterName];
     const attempts = existing ? existing.attempts + 1 : 1;
+    const bestScore = Math.max(score, existing?.score || 0);
+    const wasCompleted = existing?.completed || false;
 
     const progress: HijaiyahProgress = {
       id: letterName,
       userId: state.currentUserId,
       letterId,
       letterName,
-      completed: score >= 80,
-      score: Math.max(score, existing?.score || 0),
+      // Once completed, stay completed (use best score)
+      completed: wasCompleted || bestScore >= 80,
+      score: bestScore,
       attempts,
       lastAttemptDate: new Date().toISOString(),
       harakatMastered: [
@@ -173,15 +176,18 @@ export const useLessonProgress = create<LessonProgressStore>()((set, get) => ({
 
     const existing = state.storyProgress[storyId];
     const attempts = existing ? existing.quizAttempts + 1 : 1;
+    const bestScore = Math.max(quizScore, existing?.quizScore || 0);
+    const wasCompleted = existing?.completed || false;
 
     const progress: StoryProgress = {
       id: storyId,
       userId: state.currentUserId,
       storyId,
       storyTitle,
-      completed: quizScore >= 80 && videoWatched,
+      // Once completed, stay completed (use best score)
+      completed: wasCompleted || (bestScore >= 80 && (videoWatched || existing?.videoWatched || false)),
       videoWatched: videoWatched || existing?.videoWatched || false,
-      quizScore: Math.max(quizScore, existing?.quizScore || 0),
+      quizScore: bestScore,
       quizAttempts: attempts,
       lastAttemptDate: new Date().toISOString(),
     };
@@ -220,15 +226,18 @@ export const useLessonProgress = create<LessonProgressStore>()((set, get) => ({
 
     const existing = state.hadithProgress[hadithId];
     const attempts = existing ? existing.quizAttempts + 1 : 1;
+    const bestScore = Math.max(quizScore, existing?.quizScore || 0);
+    const wasCompleted = existing?.completed || false;
 
     const progress: HadithProgress = {
       id: hadithId,
       userId: state.currentUserId,
       hadithId,
       hadithTitle,
-      completed: quizScore >= 80 && audioPlayed,
+      // Once completed, stay completed (use best score)
+      completed: wasCompleted || (bestScore >= 80 && (audioPlayed || existing?.audioPlayed || false)),
       audioPlayed: audioPlayed || existing?.audioPlayed || false,
-      quizScore: Math.max(quizScore, existing?.quizScore || 0),
+      quizScore: bestScore,
       quizAttempts: attempts,
       memorized: memorized || existing?.memorized || false,
       lastAttemptDate: new Date().toISOString(),

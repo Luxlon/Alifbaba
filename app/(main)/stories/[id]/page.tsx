@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { PROPHET_STORIES } from "@/constants";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
+import { useHeartsModal } from "@/store/use-hearts-modal";
 import { YouTubePlayer } from "@/components/youtube-player";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -34,7 +35,8 @@ const StoryDetailPage = () => {
 
   // Stores
   const { hearts, xp, removeHearts, addXp, addPoints } = useUserProgress();
-  const { completeStoryLesson, getStoryProgress } = useLessonProgress();
+  const { completeStoryLesson, getStoryProgress, storyProgress } = useLessonProgress();
+  const { open: openHeartsModal } = useHeartsModal();
 
   // Get progress
   const progress = getStoryProgress(storyId);
@@ -80,6 +82,13 @@ const StoryDetailPage = () => {
   const handleCheckAnswer = async () => {
     if (selectedAnswer === null) return;
 
+    // Check hearts before processing
+    const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+    if (safeHearts <= 0) {
+      openHeartsModal();
+      return;
+    }
+
     setIsChecking(true);
 
     const correct = selectedAnswer === currentQuestion.correctAnswer;
@@ -87,17 +96,24 @@ const StoryDetailPage = () => {
 
     if (correct) {
       setCorrectAnswersCount((prev) => prev + 1);
-      await addXp(10);
-      toast.success("+10 XP", {
-        description: "Jawaban benar!",
-      });
-    } else {
-      if (hearts > 0) {
-        await removeHearts(1);
-        toast.error("Jawaban kurang tepat", {
-          description: "Kamu kehilangan 1 nyawa.",
+      
+      // Only add XP if not already completed
+      const existingProgress = storyProgress[storyId];
+      if (!existingProgress || existingProgress.progress < 100) {
+        await addXp(10);
+        toast.success("+10 XP", {
+          description: "Jawaban benar!",
+        });
+      } else {
+        toast.success("Jawaban benar!", {
+          description: "XP tidak bertambah (sudah pernah selesai)",
         });
       }
+    } else {
+      await removeHearts(1);
+      toast.error("Jawaban kurang tepat", {
+        description: "Kamu kehilangan 1 nyawa.",
+      });
     }
 
     setShowResult(true);
@@ -114,6 +130,12 @@ const StoryDetailPage = () => {
       const score = Math.round((correctAnswersCount / questions.length) * 100);
       handleLessonComplete(score);
     } else {
+      // Check hearts before continuing
+      const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+      if (safeHearts <= 0) {
+        openHeartsModal();
+        return;
+      }
       // Next question
       setCurrentQuestionIndex((prev) => prev + 1);
     }
@@ -122,9 +144,26 @@ const StoryDetailPage = () => {
   // Handle lesson completion
   const handleLessonComplete = async (score: number) => {
     await completeStoryLesson(storyId, story.title, score, true);
-    await addPoints(25);
-    await addXp(50);
+    
+    // Only add bonus if first completion
+    const existingProgress = storyProgress[storyId];
+    if (!existingProgress || existingProgress.progress < 100) {
+      await addPoints(25);
+      await addXp(50);
+    }
+    
     setPhase("result");
+  };
+
+  // Handle start quiz
+  const handleStartQuiz = () => {
+    // Check hearts before starting quiz
+    const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+    if (safeHearts <= 0) {
+      openHeartsModal();
+      return;
+    }
+    setPhase("quiz");
   };
 
   // Handle close
@@ -175,7 +214,7 @@ const StoryDetailPage = () => {
               <Button 
                 variant="story" 
                 size="lg"
-                onClick={() => setPhase("quiz")}
+                onClick={handleStartQuiz}
                 className="text-base sm:text-lg md:text-xl px-6 sm:px-8 md:px-12 py-4 sm:py-6 md:py-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95"
               >
                 🎯 Lanjut ke Quiz

@@ -1,11 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { HIJAIYAH_LETTERS, HARAKAT } from "@/constants";
-import { MOCK_ALIF_CHALLENGES } from "@/lib/mock-data";
+import type { Challenge } from "@/types/database";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
+import { useHeartsModal } from "@/store/use-hearts-modal";
 import { checkChallengeAnswer, calculateChallengeXP, calculateLessonScore } from "@/lib/progress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +15,72 @@ import { AudioPlayer } from "@/components/audio-player";
 import { X, Heart, Star, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+
+// Helper function to convert quizQuestions to Challenge format
+const convertQuizToChallenge = (
+  quiz: { question: string; options: string[]; correctAnswer: number },
+  index: number,
+  letterId: string
+): Challenge => {
+  return {
+    id: `${letterId}-q-${index}`,
+    lessonId: letterId,
+    type: "SELECT",
+    question: quiz.question,
+    options: quiz.options.map((opt, i) => ({
+      id: `${letterId}-q-${index}-opt-${i}`,
+      text: opt,
+      isCorrect: i === quiz.correctAnswer,
+    })),
+    correctAnswers: [`${letterId}-q-${index}-opt-${quiz.correctAnswer}`],
+    order: index + 1,
+  };
+};
+
+// Fallback quiz generator for letters without quizQuestions
+const generateFallbackChallenges = (letter: typeof HIJAIYAH_LETTERS[0]): Challenge[] => {
+  return [
+    {
+      id: `${letter.name}-ch-1`,
+      lessonId: letter.name,
+      type: "SELECT",
+      question: `Huruf apakah ini: ${letter.letter} ?`,
+      options: [
+        { id: "opt-1", text: letter.name, isCorrect: true },
+        { id: "opt-2", text: "Huruf lain", isCorrect: false },
+        { id: "opt-3", text: "Bukan huruf Hijaiyah", isCorrect: false },
+      ],
+      correctAnswers: ["opt-1"],
+      order: 1,
+    },
+    {
+      id: `${letter.name}-ch-2`,
+      lessonId: letter.name,
+      type: "SELECT",
+      question: `Bagaimana bunyi huruf ${letter.name} dengan harakat Fathah?`,
+      options: [
+        { id: "opt-1", text: `${letter.transliteration}a`, isCorrect: true },
+        { id: "opt-2", text: `${letter.transliteration}i`, isCorrect: false },
+        { id: "opt-3", text: `${letter.transliteration}u`, isCorrect: false },
+      ],
+      correctAnswers: ["opt-1"],
+      order: 2,
+    },
+    {
+      id: `${letter.name}-ch-3`,
+      lessonId: letter.name,
+      type: "SELECT",
+      question: `Bagaimana bunyi huruf ${letter.name} dengan harakat Kasrah?`,
+      options: [
+        { id: "opt-1", text: `${letter.transliteration}a`, isCorrect: false },
+        { id: "opt-2", text: `${letter.transliteration}i`, isCorrect: true },
+        { id: "opt-3", text: `${letter.transliteration}u`, isCorrect: false },
+      ],
+      correctAnswers: ["opt-2"],
+      order: 3,
+    },
+  ];
+};
 
 const HijaiyahLessonPage = () => {
   const params = useParams();
@@ -41,15 +108,26 @@ const HijaiyahLessonPage = () => {
 
   // Stores
   const { hearts, xp, removeHearts, addXp, addPoints } = useUserProgress();
-  const { getHijaiyahProgress, completeHijaiyahLesson } = useLessonProgress();
+  const { getHijaiyahProgress, completeHijaiyahLesson, hijaiyahProgress } = useLessonProgress();
+  const { open: openHeartsModal } = useHeartsModal();
 
   // Get progress for this letter
   const progress = getHijaiyahProgress(name);
 
-  // Mock challenges (in real app, this would come from database)
-  const challenges = MOCK_ALIF_CHALLENGES;
+  // Convert quizQuestions to Challenge format, or use fallback
+  const challenges: Challenge[] = useMemo(() => {
+    if (letter?.quizQuestions && letter.quizQuestions.length > 0) {
+      return letter.quizQuestions.map((q, i) => 
+        convertQuizToChallenge(q, i, letter.name)
+      );
+    }
+    return letter ? generateFallbackChallenges(letter) : [];
+  }, [letter]);
+
   const currentChallenge = challenges[currentChallengeIndex];
-  const progressPercentage = ((currentChallengeIndex + 1) / challenges.length) * 100;
+  const progressPercentage = challenges.length > 0 
+    ? ((currentChallengeIndex + 1) / challenges.length) * 100 
+    : 0;
 
   // Redirect if letter not found
   useEffect(() => {
@@ -140,6 +218,12 @@ const HijaiyahLessonPage = () => {
 
   // Handle start lesson
   const handleStartLesson = () => {
+    // Check hearts before starting
+    const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+    if (safeHearts <= 0) {
+      openHeartsModal();
+      return;
+    }
     setShowIntro(false);
   };
 
@@ -166,6 +250,13 @@ const HijaiyahLessonPage = () => {
   const handleCheckAnswer = async () => {
     if (selectedOptions.length === 0) return;
 
+    // Check hearts before processing answer
+    const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+    if (safeHearts <= 0) {
+      openHeartsModal();
+      return;
+    }
+
     setIsChecking(true);
 
     // Check if answer is correct
@@ -183,24 +274,32 @@ const HijaiyahLessonPage = () => {
     if (correct) {
       setCorrectAnswersCount(prev => prev + 1);
       
-      // Calculate and add XP
-      const isFirstTry = currentAttempts === 0;
-      const xpEarned = calculateChallengeXP(correct, isFirstTry);
-      await addXp(xpEarned);
+      // Check if already completed this lesson with 100%
+      const existingProgress = hijaiyahProgress[name];
+      const isAlreadyComplete = existingProgress && existingProgress.progress >= 100;
+      
+      // Calculate and add XP only if not already completed
+      if (!isAlreadyComplete) {
+        const isFirstTry = currentAttempts === 0;
+        const xpEarned = calculateChallengeXP(correct, isFirstTry);
+        await addXp(xpEarned);
 
-      if (isFirstTry) {
-        toast.success(`+${xpEarned} XP`, {
-          description: "Bonus XP untuk percobaan pertama!",
+        if (isFirstTry) {
+          toast.success(`+${xpEarned} XP`, {
+            description: "Bonus XP untuk percobaan pertama!",
+          });
+        }
+      } else {
+        toast.success("Jawaban benar!", {
+          description: "XP tidak bertambah (sudah pernah selesai)",
         });
       }
     } else {
       // Wrong answer - lose heart
-      if (hearts > 0) {
-        await removeHearts(1);
-        toast.error("Jawaban belum tepat", {
-          description: "Kamu kehilangan 1 nyawa. Coba lagi!",
-        });
-      }
+      await removeHearts(1);
+      toast.error("Jawaban belum tepat", {
+        description: "Kamu kehilangan 1 nyawa. Coba lagi!",
+      });
     }
 
     // Show result
@@ -218,6 +317,12 @@ const HijaiyahLessonPage = () => {
       // Lesson complete!
       handleLessonComplete();
     } else {
+      // Check hearts before continuing
+      const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+      if (safeHearts <= 0) {
+        openHeartsModal();
+        return;
+      }
       // Move to next challenge
       setCurrentChallengeIndex(prev => prev + 1);
     }
@@ -231,8 +336,14 @@ const HijaiyahLessonPage = () => {
     // Save progress
     await completeHijaiyahLesson(name, letter.name, score, harakatMastered);
 
-    // Add bonus points
-    await addPoints(20);
+    // Check if already completed before
+    const existingProgress = hijaiyahProgress[name];
+    const isAlreadyComplete = existingProgress && existingProgress.progress >= 100;
+
+    // Add bonus points only if first completion
+    if (!isAlreadyComplete) {
+      await addPoints(20);
+    }
 
     // Navigate to result page
     router.push(`/hijaiyah/${name}/result?score=${score}`);

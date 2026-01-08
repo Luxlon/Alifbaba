@@ -58,7 +58,6 @@ export const Sidebar = ({ className }: Props) => {
             href="/leaderboard"
             iconSrc="/leaderboard.svg"
           />
-          <SidebarItem label="Quest" href="/quests" iconSrc="/quests.svg" />
           <SidebarItem label="Toko" href="/shop" iconSrc="/shop.svg" />
           <div className="flex-1" />
 
@@ -109,64 +108,7 @@ export const Sidebar = ({ className }: Props) => {
         </div>
       </div>
 
-      {/* Mobile bottom navbar (visible below lg) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 z-40">
-        <div className="max-w-screen-lg mx-auto flex items-center justify-around px-2 py-2">
-          <Link
-            href="/learn"
-            aria-label="Belajar"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <Image src="/learn.svg" alt="Belajar" width={24} height={24} />
-            <span className="mt-1">Belajar</span>
-          </Link>
-          <Link
-            href="/hijaiyah"
-            aria-label="Hijaiyah"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <Image src="/hijaiyah.svg" alt="Hijaiyah" width={24} height={24} />
-            <span className="mt-1">Hijaiyah</span>
-          </Link>
-          <Link
-            href="/quests"
-            aria-label="Quest"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <span className="text-xl">🎯</span>
-            <span className="mt-1">Quest</span>
-          </Link>
-          <Link
-            href="/leaderboard"
-            aria-label="Ranking"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <Image
-              src="/leaderboard.svg"
-              alt="Ranking"
-              width={24}
-              height={24}
-            />
-            <span className="mt-1">Ranking</span>
-          </Link>
-          <Link
-            href="/shop"
-            aria-label="Toko"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <Image src="/shop.svg" alt="Toko" width={24} height={24} />
-            <span className="mt-1">Toko</span>
-          </Link>
-          <Link
-            href="/account"
-            aria-label="Profil"
-            className="flex flex-col items-center text-slate-700 text-xs"
-          >
-            <span className="text-xl">👤</span>
-            <span className="mt-1">Profil</span>
-          </Link>
-        </div>
-      </nav>
+      {/* Mobile navigation is handled by MobileHeader with drawer */}
     </>
   );
 };

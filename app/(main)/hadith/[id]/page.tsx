@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { HADITH_LIST } from "@/constants";
 import { useUserProgress } from "@/store/use-user-progress";
 import { useLessonProgress } from "@/store/use-lesson-progress";
+import { useHeartsModal } from "@/store/use-hearts-modal";
 import { AudioPlayer } from "@/components/audio-player";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -24,23 +25,26 @@ import Link from "next/link";
 
 type Phase = "intro" | "listening" | "quiz" | "result";
 
-// Quiz questions for hadith
-const generateQuizQuestions = (hadith: (typeof HADITH_LIST)[0]) => {
-  // Generate simple understanding questions
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number | string;
+}
+
+// Fallback quiz questions generator for hadith without custom questions
+const generateFallbackQuizQuestions = (hadith: (typeof HADITH_LIST)[0]): QuizQuestion[] => {
+  const options1 = ["HR. Bukhari", "HR. Muslim", hadith.narrator, "HR. Abu Dawud"]
+    .filter((v, i, a) => a.indexOf(v) === i);
+  
   return [
     {
       question: `Hadist "${hadith.title}" diriwayatkan oleh?`,
-      options: [
-        "HR. Bukhari",
-        "HR. Muslim",
-        hadith.narrator,
-        "HR. Abu Dawud",
-      ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4),
+      options: options1.slice(0, 4),
       correctAnswer: hadith.narrator,
     },
     {
       question: `Apa kategori dari hadist ini?`,
-      options: ["Akhlak", "Iman", "Keluarga", "Ibadah"],
+      options: ["Akhlak", "Ibadah", "Keluarga", "Ilmu"],
       correctAnswer: hadith.category,
     },
   ];
@@ -61,17 +65,19 @@ const HadithDetailPage = () => {
   const [listenedCount, setListenedCount] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
   // Audio ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Stores
   const { hearts, xp, removeHearts, addXp, addPoints } = useUserProgress();
-  const { completeHadithLesson } = useLessonProgress();
+  const { completeHadithLesson, hadithProgress } = useLessonProgress();
+  const { open: openHeartsModal } = useHeartsModal();
 
   // Redirect if hadith not found
   useEffect(() => {
@@ -82,10 +88,17 @@ const HadithDetailPage = () => {
 
   if (!hadith) return null;
 
-  const quizQuestions = generateQuizQuestions(hadith);
+  // Use custom quizQuestions if available, otherwise fallback
+  const quizQuestions: QuizQuestion[] = hadith.quizQuestions && hadith.quizQuestions.length > 0
+    ? hadith.quizQuestions
+    : generateFallbackQuizQuestions(hadith);
+
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const quizProgress =
     ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+
+  // Check if using custom questions (index-based answer)
+  const isCustomQuestion = hadith.quizQuestions && hadith.quizQuestions.length > 0;
 
   // Audio handlers
   const handlePlayPause = () => {
@@ -146,30 +159,56 @@ const HadithDetailPage = () => {
   };
 
   // Quiz handlers
-  const handleSelectAnswer = (answer: string) => {
+  const handleSelectAnswer = (answerIndex: number) => {
     if (showResult) return;
-    setSelectedAnswer(answer);
+    setSelectedAnswer(answerIndex);
   };
 
   const handleCheckAnswer = async () => {
     if (selectedAnswer === null) return;
 
-    const correct = selectedAnswer === currentQuestion.correctAnswer;
+    // Check if hearts are depleted
+    const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+    if (safeHearts <= 0) {
+      openHeartsModal();
+      return;
+    }
+
+    // Check answer - support both index-based (custom) and string-based (fallback)
+    let correct = false;
+    if (isCustomQuestion) {
+      // Custom questions use index-based correctAnswer
+      correct = selectedAnswer === currentQuestion.correctAnswer;
+    } else {
+      // Fallback questions use string-based correctAnswer
+      const selectedOption = currentQuestion.options[selectedAnswer];
+      correct = selectedOption === currentQuestion.correctAnswer;
+    }
+
     setIsCorrect(correct);
+
+    // Mark this question as answered
+    setAnsweredQuestions(prev => new Set(prev).add(currentQuestionIndex));
 
     if (correct) {
       setCorrectAnswersCount((prev) => prev + 1);
-      await addXp(10);
-      toast.success("+10 XP", {
-        description: "Jawaban benar!",
-      });
-    } else {
-      if (hearts > 0) {
-        await removeHearts(1);
-        toast.error("Jawaban kurang tepat", {
-          description: "Kamu kehilangan 1 nyawa.",
+      // Only add XP if not already completed this hadith with 100%
+      const existingProgress = hadithProgress[hadithId];
+      if (!existingProgress || existingProgress.progress < 100) {
+        await addXp(10);
+        toast.success("+10 XP", {
+          description: "Jawaban benar!",
+        });
+      } else {
+        toast.success("Jawaban benar!", {
+          description: "XP tidak bertambah (sudah pernah selesai)",
         });
       }
+    } else {
+      await removeHearts(1);
+      toast.error("Jawaban kurang tepat", {
+        description: "Kamu kehilangan 1 nyawa.",
+      });
     }
 
     setShowResult(true);
@@ -180,12 +219,19 @@ const HadithDetailPage = () => {
     setSelectedAnswer(null);
 
     if (currentQuestionIndex >= quizQuestions.length - 1) {
-      // Quiz complete
+      // Quiz complete - count actual correct answers including current one
+      const finalCorrect = correctAnswersCount + (isCorrect ? 0 : 0); // Already counted in handleCheckAnswer
       const score = Math.round(
         (correctAnswersCount / quizQuestions.length) * 100
       );
       handleLessonComplete(score);
     } else {
+      // Check hearts before continuing to next question
+      const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+      if (safeHearts <= 0) {
+        openHeartsModal();
+        return;
+      }
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -193,8 +239,14 @@ const HadithDetailPage = () => {
   // Handle lesson completion
   const handleLessonComplete = async (score: number) => {
     await completeHadithLesson(hadithId, hadith.title, score, true, false);
-    await addPoints(20);
-    await addXp(40);
+    
+    // Only add bonus XP/points if this is first completion or improving score
+    const existingProgress = hadithProgress[hadithId];
+    if (!existingProgress || existingProgress.progress < 100) {
+      await addPoints(20);
+      await addXp(40);
+    }
+    
     setPhase("result");
   };
 
@@ -445,7 +497,15 @@ const HadithDetailPage = () => {
             variant="hadith"
             size="lg"
             className="w-full text-base sm:text-lg h-12 sm:h-14"
-            onClick={() => setPhase("quiz")}
+            onClick={() => {
+              // Check hearts before going to quiz
+              const safeHearts = typeof hearts === 'number' && !isNaN(hearts) ? hearts : 0;
+              if (safeHearts <= 0) {
+                openHeartsModal();
+                return;
+              }
+              setPhase("quiz");
+            }}
             disabled={listenedCount === 0}
           >
             {listenedCount === 0
@@ -487,12 +547,19 @@ const HadithDetailPage = () => {
               {/* Options */}
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 lg:mb-8">
                 {currentQuestion.options.map((option, index) => {
-                  const isSelected = selectedAnswer === option;
-                  let optionStyle =
-                    "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50";
+                  const isSelected = selectedAnswer === index;
+                  
+                  // Determine correct answer index
+                  const correctAnswerIndex = isCustomQuestion 
+                    ? currentQuestion.correctAnswer as number
+                    : currentQuestion.options.findIndex(opt => opt === currentQuestion.correctAnswer);
+                  
+                  const isCorrectOption = index === correctAnswerIndex;
+                  
+                  let optionStyle = "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50";
 
                   if (showResult) {
-                    if (option === currentQuestion.correctAnswer) {
+                    if (isCorrectOption) {
                       optionStyle = "border-emerald-500 bg-emerald-50";
                     } else if (isSelected && !isCorrect) {
                       optionStyle = "border-red-500 bg-red-50";
@@ -504,7 +571,7 @@ const HadithDetailPage = () => {
                   return (
                     <button
                       key={index}
-                      onClick={() => handleSelectAnswer(option)}
+                      onClick={() => handleSelectAnswer(index)}
                       disabled={showResult}
                       className={`
                         w-full p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl border-2 text-left transition-all active:scale-[0.98]
@@ -517,13 +584,12 @@ const HadithDetailPage = () => {
                           className={`
                             w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs sm:text-sm
                             ${
-                              isSelected
+                              isSelected && !showResult
                                 ? "border-purple-500 bg-purple-500 text-white"
                                 : "border-gray-300 text-gray-400"
                             }
                             ${
-                              showResult &&
-                              option === currentQuestion.correctAnswer
+                              showResult && isCorrectOption
                                 ? "border-emerald-500 bg-emerald-500 text-white"
                                 : ""
                             }
@@ -541,8 +607,7 @@ const HadithDetailPage = () => {
                           {option}
                         </span>
 
-                        {showResult &&
-                          option === currentQuestion.correctAnswer && (
+                        {showResult && isCorrectOption && (
                             <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 flex-shrink-0" />
                           )}
                       </div>
