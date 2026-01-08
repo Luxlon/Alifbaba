@@ -504,8 +504,8 @@ const AccountPage = () => {
           </Button>
           <Button
             variant="ghost"
-            className="w-full justify-start text-red-500 text-sm"
-            disabled
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 text-sm"
+            onClick={() => signOut()}
           >
             <LogOut className="h-4 w-4 mr-2" />
             Keluar

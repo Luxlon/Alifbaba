@@ -196,27 +196,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo Accounts Info */}
-          <div className="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-            <p className="text-sm font-medium text-emerald-800 mb-2">
-              Akun Demo:
-            </p>
-            <div className="text-xs text-emerald-700 space-y-1">
-              <p>
-                👑 Admin: <span className="font-mono">admin</span> /
-                admin
-              </p>
-              <p>
-                👨‍🏫 Guru: <span className="font-mono">guru1</span> /
-                guru1
-              </p>
-              <p>
-                👦 Siswa: <span className="font-mono">siswa1</span> /
-                siswa1
-              </p>
-            </div>
-          </div>
-
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-neutral-200" />
